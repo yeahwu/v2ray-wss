@@ -23,10 +23,10 @@ else
     sleep 3s
 fi
 
+systemctl stop nginx.service
+
 echo "====输入已经DNS解析好的域名===="
 read domain
-
-systemctl stop nginx
 
 if [ -f "/usr/bin/apt-get" ];then
         isDebian=`cat /etc/issue|grep Debian`
@@ -103,8 +103,6 @@ http {
 }
 EOF
 
-systemctl start nginx
-
 wget https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh && bash install-release.sh
 
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
@@ -139,7 +137,9 @@ cat >/usr/local/etc/v2ray/config.json<<EOF
 }
 EOF
 
-systemctl start v2ray
+systemctl enable nginx.service && systemctl start nginx.service
+
+systemctl enable v2ray.service && systemctl start v2ray.service
 
 cat >/etc/v2-client.json<<EOF
 {
