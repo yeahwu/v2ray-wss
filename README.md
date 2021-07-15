@@ -1,1 +1,3 @@
-`wget https://raw.githubusercontent.com/yeahwu/v2ray-wss/main/v2-wss.sh && bash v2-wss.sh`
+搭建 V2ray+ Nginx + WebSocket 代理脚本，支持 Debian、Ubuntu、Centos
+
+`wget https://git.io/v2-wss.sh && bash v2-wss.sh`
