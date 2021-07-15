@@ -43,7 +43,7 @@ else
 fi
 
 cat >/etc/nginx/nginx.conf<<EOF
-pid /run/nginx.pid;
+pid /var/run/nginx.pid;
 worker_processes auto;
 worker_rlimit_nofile 51200;
 
