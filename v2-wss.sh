@@ -7,6 +7,11 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+timedatectl set-timezone Asia/Shanghai
+
+echo "====输入已经DNS解析好的域名===="
+read domain
+
 if [ -f "/usr/bin/apt-get" ];then
         isDebian=`cat /etc/issue|grep Debian`
         if [ "$isDebian" != "" ];then
@@ -24,9 +29,6 @@ else
 fi
 
 systemctl stop nginx.service
-
-echo "====输入已经DNS解析好的域名===="
-read domain
 
 if [ -f "/usr/bin/apt-get" ];then
         isDebian=`cat /etc/issue|grep Debian`
@@ -46,13 +48,11 @@ cat >/etc/nginx/nginx.conf<<EOF
 pid /var/run/nginx.pid;
 worker_processes auto;
 worker_rlimit_nofile 51200;
-
 events {
     worker_connections 1024;
     multi_accept on;
     use epoll;
 }
-
 http {
     server_tokens off;
     sendfile on;
@@ -62,15 +62,12 @@ http {
     keepalive_requests 10000;
     types_hash_max_size 2048;
     include /etc/nginx/mime.types;
-
     access_log off;
     error_log /dev/null;
-
     server {
         listen 80;
         listen [::]:80;
         server_name $domain;
-
         location / {
             proxy_redirect off;
             proxy_pass http://127.0.0.1:10086;
@@ -80,7 +77,6 @@ http {
             proxy_set_header Host \$http_host;
         }
     }
-
     server {
         listen 443 ssl http2;
         listen [::]:443 ssl http2;
@@ -90,7 +86,6 @@ http {
         ssl_prefer_server_ciphers on;
         ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
         ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
-
         location / {
             proxy_redirect off;
             proxy_pass http://127.0.0.1:10086;
@@ -141,7 +136,7 @@ systemctl enable nginx.service && systemctl start nginx.service
 
 systemctl enable v2ray.service && systemctl start v2ray.service
 
-cat >/etc/v2-client.json<<EOF
+cat >/usr/local/etc/v2ray/client.json<<EOF
 {
 ===========配置参数=============
 地址：${domain}
@@ -160,7 +155,7 @@ echo "安装已经完成"
 echo
 echo "===========配置参数============"
 echo "地址：${domain}"
-echo "端口：443"
+echo "端口：443/80"
 echo "uuid：${v2uuid}"
 echo "加密方式：aes-128-gcm"
 echo "传输协议：ws"
