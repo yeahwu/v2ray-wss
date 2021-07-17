@@ -140,12 +140,13 @@ cat >/usr/local/etc/v2ray/client.json<<EOF
 {
 ===========配置参数=============
 地址：${domain}
-端口：443
+端口：443/80/10086
 uuid：${v2uuid}
 加密方式：aes-128-gcm
 传输协议：ws
 路径：/posts/wss_ray.html
 底层传输：tls
+注意：80和10086端口不需要打开tls加密
 }
 EOF
 
@@ -155,10 +156,11 @@ echo "安装已经完成"
 echo
 echo "===========配置参数============"
 echo "地址：${domain}"
-echo "端口：443/80"
+echo "端口：443/80/10086"
 echo "uuid：${v2uuid}"
 echo "加密方式：aes-128-gcm"
 echo "传输协议：ws"
 echo "路径：/posts/wss_ray.html"
 echo "底层传输：tls"
+echo "注意：80和10086端口不需要打开tls"
 echo
