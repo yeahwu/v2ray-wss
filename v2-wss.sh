@@ -70,7 +70,7 @@ http {
         server_name $domain;
         location /posts/wss_ray.html {
             proxy_redirect off;
-            proxy_pass http://127.0.0.1:10086;
+            proxy_pass http://127.0.0.1:8080;
             proxy_http_version 1.1;
             proxy_set_header Upgrade \$http_upgrade;
             proxy_set_header Connection "upgrade";
@@ -88,7 +88,7 @@ http {
         ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
         location /posts/wss_ray.html {
             proxy_redirect off;
-            proxy_pass http://127.0.0.1:10086;
+            proxy_pass http://127.0.0.1:8080;
             proxy_http_version 1.1;
             proxy_set_header Upgrade \$http_upgrade;
             proxy_set_header Connection "upgrade";
@@ -106,7 +106,7 @@ cat >/usr/local/etc/v2ray/config.json<<EOF
 {
   "inbounds": [
     {
-      "port": 10086,
+      "port": 8080,
       "protocol": "vmess",
       "settings": {
         "clients": [
@@ -140,13 +140,13 @@ cat >/usr/local/etc/v2ray/client.json<<EOF
 {
 ===========配置参数=============
 地址：${domain}
-端口：443/80/10086
+端口：443/80/8080
 uuid：${v2uuid}
 加密方式：aes-128-gcm
 传输协议：ws
 路径：/posts/wss_ray.html
 底层传输：tls
-注意：80和10086端口不需要打开tls加密
+注意：80和8080端口不需要打开tls加密
 }
 EOF
 
@@ -156,11 +156,11 @@ echo "安装已经完成"
 echo
 echo "===========配置参数============"
 echo "地址：${domain}"
-echo "端口：443/80/10086"
+echo "端口：443/80/8080"
 echo "uuid：${v2uuid}"
 echo "加密方式：aes-128-gcm"
 echo "传输协议：ws"
 echo "路径：/posts/wss_ray.html"
 echo "底层传输：tls"
-echo "注意：80和10086端口不需要打开tls"
+echo "注意：80和8080端口不需要打开tls"
 echo
