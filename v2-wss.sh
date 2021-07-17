@@ -68,7 +68,7 @@ http {
         listen 80;
         listen [::]:80;
         server_name $domain;
-        location / {
+        location /posts/wss_ray.html {
             proxy_redirect off;
             proxy_pass http://127.0.0.1:10086;
             proxy_http_version 1.1;
@@ -86,7 +86,7 @@ http {
         ssl_prefer_server_ciphers on;
         ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
         ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
-        location / {
+        location /posts/wss_ray.html {
             proxy_redirect off;
             proxy_pass http://127.0.0.1:10086;
             proxy_http_version 1.1;
@@ -118,7 +118,7 @@ cat >/usr/local/etc/v2ray/config.json<<EOF
       "streamSettings": {
         "network": "ws",
         "wsSettings": {
-        "path": "/"
+        "path": "/posts/wss_ray.html"
         }
       }
     }
@@ -144,7 +144,7 @@ cat >/usr/local/etc/v2ray/client.json<<EOF
 uuid：${v2uuid}
 加密方式：aes-128-gcm
 传输协议：ws
-路径：/
+路径：/posts/wss_ray.html
 底层传输：tls
 }
 EOF
@@ -159,6 +159,6 @@ echo "端口：443/80"
 echo "uuid：${v2uuid}"
 echo "加密方式：aes-128-gcm"
 echo "传输协议：ws"
-echo "路径：/"
+echo "路径：/posts/wss_ray.html"
 echo "底层传输：tls"
 echo
