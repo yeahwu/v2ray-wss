@@ -44,6 +44,8 @@ else
     sleep 3s
 fi
 
+v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
+
 cat >/etc/nginx/nginx.conf<<EOF
 pid /var/run/nginx.pid;
 worker_processes auto;
@@ -68,7 +70,7 @@ http {
         listen 80;
         listen [::]:80;
         server_name $domain;
-        location /posts/wss_ray.html {
+        location /$v2path {
             proxy_redirect off;
             proxy_pass http://127.0.0.1:8080;
             proxy_http_version 1.1;
@@ -86,7 +88,7 @@ http {
         ssl_prefer_server_ciphers on;
         ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
         ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
-        location /posts/wss_ray.html {
+        location /$v2path {
             proxy_redirect off;
             proxy_pass http://127.0.0.1:8080;
             proxy_http_version 1.1;
@@ -118,7 +120,7 @@ cat >/usr/local/etc/v2ray/config.json<<EOF
       "streamSettings": {
         "network": "ws",
         "wsSettings": {
-        "path": "/posts/wss_ray.html"
+        "path": "/$v2path"
         }
       }
     }
@@ -141,12 +143,12 @@ cat >/usr/local/etc/v2ray/client.json<<EOF
 ===========配置参数=============
 地址：${domain}
 端口：443/80/8080
-uuid：${v2uuid}
+UUID：${v2uuid}
 加密方式：aes-128-gcm
 传输协议：ws
-路径：/posts/wss_ray.html
+路径：/${v2path}
 底层传输：tls
-注意：80和8080端口不需要打开tls加密
+注意：80和8080端口不需要打开tls
 }
 EOF
 
@@ -157,10 +159,10 @@ echo
 echo "===========配置参数============"
 echo "地址：${domain}"
 echo "端口：443/80/8080"
-echo "uuid：${v2uuid}"
+echo "UUID：${v2uuid}"
 echo "加密方式：aes-128-gcm"
 echo "传输协议：ws"
-echo "路径：/posts/wss_ray.html"
+echo "路径：/${v2path}"
 echo "底层传输：tls"
 echo "注意：80和8080端口不需要打开tls"
 echo
