@@ -12,7 +12,7 @@ timedatectl set-timezone Asia/Shanghai
 echo "====输入已经DNS解析好的域名===="
 read domain
 
-apt install nginx certbot php7.3 php7.3-fpm -y
+apt install -y nginx certbot php7.3 php7.3-fpm
 
 systemctl stop nginx.service
 
@@ -20,7 +20,7 @@ echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email
 
 sed -ri 's|listen = /run/php/php7.3-fpm.sock|listen = 127.0.0.1:9000|' /etc/php/7.3/fpm/pool.d/www.conf
 
-systemctl restart php7.3-fpm
+systemctl restart php7.3-fpm.service
 
 mkdir -p /var/www/html
 
@@ -134,6 +134,8 @@ EOF
 systemctl enable nginx.service && systemctl start nginx.service
 
 systemctl enable v2ray.service && systemctl start v2ray.service
+
+rm -f install-release.sh debian10-wss-tz.sh
 
 cat >/usr/local/etc/v2ray/client.json<<EOF
 {
