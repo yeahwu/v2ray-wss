@@ -138,6 +138,8 @@ systemctl enable nginx.service && systemctl start nginx.service
 
 systemctl enable v2ray.service && systemctl start v2ray.service
 
+rm -f install-release.sh v2-wss.sh
+
 cat >/usr/local/etc/v2ray/client.json<<EOF
 {
 ===========配置参数=============
