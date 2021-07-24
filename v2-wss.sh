@@ -17,29 +17,19 @@ if [ -f "/usr/bin/apt-get" ];then
         if [ "$isDebian" != "" ];then
                 apt-get install -y nginx certbot
                 apt install -y nginx certbot
+                systemctl stop nginx.service
+                echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
                 sleep 3s
         else
                 apt-get install -y nginx certbot
                 apt install -y nginx certbot
+                systemctl stop nginx.service
+                echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
                 sleep 3s
         fi
 else
     yum install -y nginx certbot
-    sleep 3s
-fi
-
-systemctl stop nginx.service
-
-if [ -f "/usr/bin/apt-get" ];then
-        isDebian=`cat /etc/issue|grep Debian`
-        if [ "$isDebian" != "" ];then
-                echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
-                sleep 3s
-        else
-                echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
-                sleep 3s
-        fi
-else
+    systemctl stop nginx.service
     echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
     sleep 3s
 fi
