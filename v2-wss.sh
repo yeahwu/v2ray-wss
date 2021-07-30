@@ -28,6 +28,7 @@ if [ -f "/usr/bin/apt-get" ];then
                 sleep 3s
         fi
 else
+    yum install -y epel-release
     yum install -y nginx certbot
     systemctl stop nginx.service
     echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
