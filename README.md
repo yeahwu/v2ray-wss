@@ -1,6 +1,6 @@
 搭建 V2ray+ Nginx + WebSocket 和 Shadowsocks-libev 代理脚本，可以选择单独安装或一起安装，支持 Debian、Ubuntu、Centos，支持 amd、arm 多平台。
 
-注：安装 v2ray+ws+tls 代理前不要占用80端口，否则申请证书会失败。
+注：安装 v2ray+ws+tls 代理前不要占用80端口，否则申请证书会失败。另，系统是越新越好，老破旧系统勿扰！
 
 运行脚本：
 
