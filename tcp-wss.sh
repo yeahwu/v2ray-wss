@@ -13,7 +13,7 @@ v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
-install_ssl(){
+install_v2ray(){
     echo "====输入已经DNS解析好的域名===="
     read domain
     
@@ -37,9 +37,7 @@ install_ssl(){
         echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
         sleep 3s
     fi
-}
 
-install_v2ray(){
 cat >/etc/nginx/nginx.conf<<EOF
 pid /var/run/nginx.pid;
 worker_processes auto;
@@ -205,7 +203,7 @@ Restart=on-abort
 WantedBy=multi-user.target
 EOF
 
-    systemctl daemon-reload && systemctl enable shadowsocks && systemctl start shadowsocks
+    systemctl daemon-reload && systemctl enable shadowsocks.service && systemctl start shadowsocks.service
 
     clear
     echo
@@ -221,13 +219,13 @@ config_proxy(){
     echo
     echo "===========v2ray配置参数============"
     echo "地址：${domain}"
-    echo "端口：443/80/8080"
+    echo "端口：443/8080"
     echo "UUID：${v2uuid}"
     echo "加密方式：aes-128-gcm"
     echo "传输协议：ws"
     echo "路径：/${v2path}"
     echo "底层传输：tls"
-    echo "注意：80和8080端口不需要打开tls"
+    echo "注意：8080端口不需要打开tls"
     echo
     echo "=========Shadowsocks配置参数========="
     echo
@@ -252,11 +250,9 @@ start_menu(){
     install_sslibev
     ;;
     2)
-    install_ssl
     install_v2ray  
     ;;
     3)
-    install_ssl
     install_v2ray
     install_sslibev
     config_proxy
