@@ -236,14 +236,14 @@ config_proxy(){
 
 start_menu(){
     clear
-    echo " ============================================="
+    echo " ================================================== "
     echo " 介绍：一键安装Shadowsocks-libev和v2ray+ws+tls代理    "
-    echo " 系统：Ubuntu、Debian、CentOS                  "
-    echo " ============================================="
+    echo " 系统：Ubuntu、Debian、CentOS                        "
+    echo " ================================================== "
     echo
     echo " 1. 安装Shadowsocks-libev"
     echo " 2. 安装v2ray+ws+tls"
-    echo " 3. 同时安装Shadowsocks和v2ray-wss代理"
+    echo " 3. 同时安装上述两种代理"
     echo " 0. 退出脚本"
     echo
     read -p "请输入数字:" num
