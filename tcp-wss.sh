@@ -63,7 +63,7 @@ http {
         listen [::]:80;
         server_name $domain;
         location / {
-            return 301 https://$server_name$request_uri;
+            return 301 https://\$server_name\$request_uri;
         }
     }
     server {
