@@ -13,10 +13,10 @@ v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
-echo "====输入已经DNS解析好的域名===="
-read domain
-
 install_ssl(){
+    echo "====输入已经DNS解析好的域名===="
+    read domain
+    
     if [ -f "/usr/bin/apt-get" ];then
             isDebian=`cat /etc/issue|grep Debian`
             if [ "$isDebian" != "" ];then
