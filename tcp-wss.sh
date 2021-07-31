@@ -8,9 +8,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 timedatectl set-timezone Asia/Shanghai
-
 v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
-
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
 install_v2ray(){
@@ -120,8 +118,8 @@ cat >/usr/local/etc/v2ray/config.json<<EOF
 EOF
 
     systemctl enable nginx.service && systemctl start nginx.service
-
     systemctl enable v2ray.service && systemctl start v2ray.service
+    rm -f tcp-wss.sh install-release.sh
 
 cat >/usr/local/etc/v2ray/client.json<<EOF
 {
@@ -204,6 +202,8 @@ WantedBy=multi-user.target
 EOF
 
     systemctl daemon-reload && systemctl enable shadowsocks.service && systemctl start shadowsocks.service
+    cd ..
+    rm -rf shadowsocks-libev
 
     clear
     echo
