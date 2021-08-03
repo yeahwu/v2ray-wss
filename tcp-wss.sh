@@ -41,15 +41,15 @@ install_nginx(){
         if [ -f "/usr/bin/apt-get" ];then
             isDebian=`cat /etc/issue|grep Debian`
             if [ "$isDebian" != "" ];then
-                    apt install -y certbot build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
+                    apt install -y build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
                     sleep 3s
             else
-                    apt install -y certbot build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
+                    apt install -y build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
                     sleep 3s
             fi
     else
         yum install -y epel-release
-        yum install -y certbot gcc gcc-c++ zlib zlib-devel openssl openssl-devel pcre-devel
+        yum install -y gcc gcc-c++ zlib zlib-devel openssl openssl-devel pcre-devel
         sleep 3s
     fi
 
