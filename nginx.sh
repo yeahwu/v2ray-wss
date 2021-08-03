@@ -309,7 +309,7 @@ start_menu(){
     install_v2ray
     install_libev
     client_v2ray
-    client_libev
+    client_sslibev
     ;;
     0)
     exit 1
