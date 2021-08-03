@@ -38,7 +38,7 @@ install_ssl(){
         systemctl stop nginx.service
         echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
         echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/root
-        service cron restart
+        service crond restart
         sleep 3s
     fi
 }
