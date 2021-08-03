@@ -139,7 +139,7 @@ http {
 }
 EOF
 
-systemctl daemon-reload && systemctl enable nginx.service && systemctl start nginx.service
+    systemctl daemon-reload && systemctl enable nginx.service && systemctl start nginx.service
 }
 
 install_v2ray(){    
@@ -309,7 +309,7 @@ start_menu(){
     install_v2ray
     install_libev
     client_v2ray
-    clinet_libev
+    client_libev
     ;;
     0)
     exit 1
