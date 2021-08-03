@@ -307,7 +307,7 @@ start_menu(){
     install_ssl
     install_nginx
     install_v2ray
-    install_libev
+    install_sslibev
     client_v2ray
     client_sslibev
     ;;
