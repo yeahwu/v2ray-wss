@@ -9,68 +9,48 @@ timedatectl set-timezone Asia/Shanghai
 v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
-install_v2ray(){
+install_ssl(){
     echo "====输入已经DNS解析好的域名===="
     read domain
     
     if [ -f "/usr/bin/apt-get" ];then
             isDebian=`cat /etc/issue|grep Debian`
             if [ "$isDebian" != "" ];then
-                    apt install -y certbot build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
+                    apt install -y certbot
                     systemctl stop nginx.service
                     echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
                     sleep 3s
             else
-                    apt install -y certbot build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
+                    apt install -y certbot
                     systemctl stop nginx.service
                     echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
                     sleep 3s
             fi
     else
         yum install -y epel-release
-        yum install -y certbot gcc gcc-c++ zlib zlib-devel openssl openssl-devel pcre-devel
+        yum install -y certbot
         systemctl stop nginx.service
         echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
         sleep 3s
     fi
-    
-    wget https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh && bash install-release.sh
-    
-cat >/usr/local/etc/v2ray/config.json<<EOF
-{
-  "inbounds": [
-    {
-      "port": 8080,
-      "protocol": "vmess",
-      "settings": {
-        "clients": [
-          {
-            "id": "$v2uuid"
-          }
-        ]
-      },
-      "streamSettings": {
-        "network": "ws",
-        "wsSettings": {
-        "path": "/$v2path"
-        }
-      }
-    }
-  ],
-  "outbounds": [
-    {
-      "protocol": "freedom",
-      "settings": {}
-    }
-  ]
-}
-EOF
-
-    systemctl enable v2ray.service && systemctl start v2ray.service
-    rm -f tcp-wss.sh install-release.sh
 }
 
 install_nginx(){
+        if [ -f "/usr/bin/apt-get" ];then
+            isDebian=`cat /etc/issue|grep Debian`
+            if [ "$isDebian" != "" ];then
+                    apt install -y certbot build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
+                    sleep 3s
+            else
+                    apt install -y certbot build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
+                    sleep 3s
+            fi
+    else
+        yum install -y epel-release
+        yum install -y certbot gcc gcc-c++ zlib zlib-devel openssl openssl-devel pcre-devel
+        sleep 3s
+    fi
+
     wget https://nginx.org/download/nginx-1.21.1.tar.gz -O - | tar -xz
     cd nginx-1.21.1
     ./configure --prefix=/etc/nginx \
@@ -98,7 +78,6 @@ cat >/lib/systemd/system/nginx.service<<EOF
 Description=The NGINX HTTP and reverse proxy server
 After=syslog.target network-online.target remote-fs.target nss-lookup.target
 Wants=network-online.target
-
 [Service]
 Type=forking
 PIDFile=/var/run/nginx.pid
@@ -107,7 +86,6 @@ ExecStart=/usr/sbin/nginx
 ExecReload=/usr/sbin/nginx -s reload
 ExecStop=/bin/kill -s QUIT $MAINPID
 PrivateTmp=true
-
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -162,6 +140,43 @@ http {
 EOF
 
 systemctl daemon-reload && systemctl enable nginx.service && systemctl start nginx.service
+}
+
+install_v2ray(){    
+    wget https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh && bash install-release.sh
+    
+cat >/usr/local/etc/v2ray/config.json<<EOF
+{
+  "inbounds": [
+    {
+      "port": 8080,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "$v2uuid"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+        "path": "/$v2path"
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {}
+    }
+  ]
+}
+EOF
+
+    systemctl enable v2ray.service && systemctl start v2ray.service
+    rm -f tcp-wss.sh install-release.sh
 
 cat >/usr/local/etc/v2ray/client.json<<EOF
 {
@@ -178,19 +193,6 @@ UUID：${v2uuid}
 EOF
 
     clear
-    echo
-    echo "安装已经完成"
-    echo
-    echo "===========配置参数============"
-    echo "地址：${domain}"
-    echo "端口：443/8080"
-    echo "UUID：${v2uuid}"
-    echo "加密方式：aes-128-gcm"
-    echo "传输协议：ws"
-    echo "路径：/${v2path}"
-    echo "底层传输：tls"
-    echo "注意：8080端口不需要打开tls"
-    echo
 }
 
 install_sslibev(){
@@ -246,14 +248,9 @@ EOF
     rm -rf shadowsocks-libev tcp-wss.sh
 
     clear
-    echo
-    echo "=========Shadowsocks配置参数========="
-    echo
-    cat /etc/shadowsocks-libev/config.json
 }
 
-config_proxy(){
-    clear
+client_v2ray(){
     echo
     echo "安装已经完成"
     echo
@@ -267,9 +264,19 @@ config_proxy(){
     echo "底层传输：tls"
     echo "注意：8080端口不需要打开tls"
     echo
-    echo "=========Shadowsocks配置参数========="
+}
+
+client_sslibev(){
     echo
-    cat /etc/shadowsocks-libev/config.json
+    echo "安装已经完成"
+    echo
+    echo "===========Shadowsocks配置参数============"
+    echo "地址：0.0.0.0"
+    echo "端口：1024"
+    echo "UUID：${v2uuid}"
+    echo "加密方式：aes-256-gcm"
+    echo "传输协议：tcp"
+    echo
 }
 
 start_menu(){
@@ -288,16 +295,21 @@ start_menu(){
     case "$num" in
     1)
     install_sslibev
+    client_sslibev
     ;;
     2)
-    install_v2ray
+    install_ssl
     install_nginx
+    install_v2ray
+    client_v2ray
     ;;
     3)
-    install_v2ray
+    install_ssl
     install_nginx
-    install_sslibev
-    config_proxy
+    install_v2ray
+    install_libev
+    client_v2ray
+    clinet_libev
     ;;
     0)
     exit 1
