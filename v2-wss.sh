@@ -11,30 +11,98 @@ timedatectl set-timezone Asia/Shanghai
 v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
-install_v2ray(){
+install_ssl(){
+    systemctl stop nginx.service
+    isport=`netstat -ntlp| grep -E ':80 |:443 '`
+    if [[ "${isport}" != "" ]]; then
+            echo " 80或443端口被占用请先关闭，再运行脚本"
+            echo " 端口占用信息如下："
+            echo ${isport}
+            exit 1
+    fi
+    
     echo "====输入已经DNS解析好的域名===="
     read domain
     
     if [ -f "/usr/bin/apt-get" ];then
             isDebian=`cat /etc/issue|grep Debian`
             if [ "$isDebian" != "" ];then
-                    apt install -y nginx certbot
-                    systemctl stop nginx.service
+                    apt install -y certbot
                     echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
+                    echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/crontabs/root
+                    systemctl restart cron.service
                     sleep 3s
             else
-                    apt install -y nginx certbot
-                    systemctl stop nginx.service
+                    apt install -y certbot
                     echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
+                    echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/crontabs/root
+                    systemctl restart cron.service
                     sleep 3s
             fi
     else
-        yum install epel-release -y
-        yum install nginx certbot -y
-        systemctl stop nginx.service
+        yum install -y epel-release
+        yum install -y certbot
         echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
+        echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/root
+        systemctl restart crond.service
         sleep 3s
     fi
+}
+
+install_nginx(){
+        if [ -f "/usr/bin/apt-get" ];then
+            isDebian=`cat /etc/issue|grep Debian`
+            if [ "$isDebian" != "" ];then
+                    apt install -y build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
+                    sleep 3s
+            else
+                    apt install -y build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
+                    sleep 3s
+            fi
+    else
+        yum install -y epel-release
+        yum install -y gcc gcc-c++ zlib zlib-devel openssl openssl-devel pcre-devel
+        sleep 3s
+    fi
+
+    wget https://nginx.org/download/nginx-1.21.1.tar.gz -O - | tar -xz
+    cd nginx-1.21.1
+    ./configure --prefix=/etc/nginx \
+    --sbin-path=/usr/sbin/nginx \
+    --modules-path=/usr/lib/nginx/modules \
+    --conf-path=/etc/nginx/nginx.conf \
+    --error-log-path=/var/log/nginx/error.log \
+    --http-log-path=/var/log/nginx/access.log \
+    --pid-path=/var/run/nginx.pid \
+    --lock-path=/var/run/nginx.lock \
+    --with-http_v2_module \
+    --with-http_ssl_module \
+    --with-http_gzip_static_module \
+    --with-http_stub_status_module \
+    --with-http_sub_module \
+    --with-stream \
+    --with-stream_ssl_module
+    
+    make && make install
+    cd ..
+    rm -rf nginx-1.21.1
+    
+cat >/lib/systemd/system/nginx.service<<EOF
+[Unit]
+Description=The NGINX HTTP and reverse proxy server
+After=syslog.target network-online.target remote-fs.target nss-lookup.target
+Wants=network-online.target
+[Service]
+Type=forking
+PIDFile=/var/run/nginx.pid
+ExecStartPre=/usr/sbin/nginx -t
+ExecStart=/usr/sbin/nginx
+ExecReload=/usr/sbin/nginx -s reload
+ExecStop=/bin/kill -s QUIT \$MAINPID
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target
+EOF
 
 cat >/etc/nginx/nginx.conf<<EOF
 pid /var/run/nginx.pid;
@@ -85,8 +153,12 @@ http {
 }
 EOF
 
-    wget https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh && bash install-release.sh
+    systemctl daemon-reload && systemctl enable nginx.service && systemctl start nginx.service
+}
 
+install_v2ray(){    
+    wget https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh && bash install-release.sh
+    
 cat >/usr/local/etc/v2ray/config.json<<EOF
 {
   "inbounds": [
@@ -117,7 +189,6 @@ cat >/usr/local/etc/v2ray/config.json<<EOF
 }
 EOF
 
-    systemctl enable nginx.service && systemctl start nginx.service
     systemctl enable v2ray.service && systemctl start v2ray.service
     rm -f tcp-wss.sh install-release.sh
 
@@ -136,19 +207,6 @@ UUID：${v2uuid}
 EOF
 
     clear
-    echo
-    echo "安装已经完成"
-    echo
-    echo "===========配置参数============"
-    echo "地址：${domain}"
-    echo "端口：443/8080"
-    echo "UUID：${v2uuid}"
-    echo "加密方式：aes-128-gcm"
-    echo "传输协议：ws"
-    echo "路径：/${v2path}"
-    echo "底层传输：tls"
-    echo "注意：8080端口不需要打开tls"
-    echo
 }
 
 install_sslibev(){
@@ -192,11 +250,9 @@ cat >/etc/systemd/system/shadowsocks.service<<EOF
 [Unit]
 Description=Shadowsocks Server
 After=network.target
-
 [Service]
 ExecStart=/usr/bin/ss-server -c /etc/shadowsocks-libev/config.json
 Restart=on-abort
-
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -206,14 +262,9 @@ EOF
     rm -rf shadowsocks-libev tcp-wss.sh
 
     clear
-    echo
-    echo "=========Shadowsocks配置参数========="
-    echo
-    cat /etc/shadowsocks-libev/config.json
 }
 
-config_proxy(){
-    clear
+client_v2ray(){
     echo
     echo "安装已经完成"
     echo
@@ -227,9 +278,19 @@ config_proxy(){
     echo "底层传输：tls"
     echo "注意：8080端口不需要打开tls"
     echo
-    echo "=========Shadowsocks配置参数========="
+}
+
+client_sslibev(){
     echo
-    cat /etc/shadowsocks-libev/config.json
+    echo "安装已经完成"
+    echo
+    echo "===========Shadowsocks配置参数============"
+    echo "地址：0.0.0.0"
+    echo "端口：1024"
+    echo "UUID：${v2uuid}"
+    echo "加密方式：aes-256-gcm"
+    echo "传输协议：tcp"
+    echo
 }
 
 start_menu(){
@@ -248,14 +309,21 @@ start_menu(){
     case "$num" in
     1)
     install_sslibev
+    client_sslibev
     ;;
     2)
-    install_v2ray  
+    install_ssl
+    install_nginx
+    install_v2ray
+    client_v2ray
     ;;
     3)
+    install_ssl
+    install_nginx
     install_v2ray
     install_sslibev
-    config_proxy
+    client_v2ray
+    client_sslibev
     ;;
     0)
     exit 1
