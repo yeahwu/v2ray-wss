@@ -12,6 +12,15 @@ v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
 install_ssl(){
+    systemctl stop nginx.service
+    isport=`netstat -ntlp| grep -E ':80 |:443 '`
+    if [[ "${isport}" != "" ]]; then
+            echo " 80或443端口被占用请先释放端口，再运行脚本"
+            echo " 端口占用信息如下："
+            echo ${isport}
+            exit 1
+    fi
+    
     echo "====输入已经DNS解析好的域名===="
     read domain
     
@@ -19,14 +28,12 @@ install_ssl(){
             isDebian=`cat /etc/issue|grep Debian`
             if [ "$isDebian" != "" ];then
                     apt install -y certbot
-                    systemctl stop nginx.service
                     echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
                     echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/crontabs/root
                     systemctl restart cron.service
                     sleep 3s
             else
                     apt install -y certbot
-                    systemctl stop nginx.service
                     echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
                     echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/crontabs/root
                     systemctl restart cron.service
@@ -35,7 +42,6 @@ install_ssl(){
     else
         yum install -y epel-release
         yum install -y certbot
-        systemctl stop nginx.service
         echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
         echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/root
         systemctl restart crond.service
