@@ -12,7 +12,6 @@ v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
 install_ssl(){
-    systemctl stop nginx.service
     isPort=`netstat -ntlp| grep -E ':80 |:443 '`
     if [ "$isPort" != "" ];then
             echo " 80或443端口被占用，请先释放端口再运行此脚本"
