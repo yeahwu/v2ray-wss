@@ -14,6 +14,7 @@ v2uuid=$(cat /proc/sys/kernel/random/uuid)
 install_ssl(){
     isPort=`netstat -ntlp| grep -E ':80 |:443 '`
     if [ "$isPort" != "" ];then
+            clear
             echo " 80或443端口被占用，请先释放端口再运行此脚本"
             echo " 端口占用信息如下："
             echo $isPort
