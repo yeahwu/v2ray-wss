@@ -9,3 +9,11 @@
 `wget https://git.io/tcp-wss.sh && bash tcp-wss.sh`
 
 ![image](https://user-images.githubusercontent.com/13328328/127747290-d6485b45-f84f-44da-ad32-6d374f21d35f.JPG)
+
+已测试系统如下：
+
+Debian 9, 10, 11
+
+Ubuntu 18.04, 20.04
+
+CentOS 7
