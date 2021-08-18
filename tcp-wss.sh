@@ -46,7 +46,7 @@ install_ssl(){
             isDebian=`cat /etc/issue|grep Debian`
             if [ "$isDebian" != "" ];then
                     apt install -y snapd
-                    snap install core; sudo snap refresh core
+                    snap install core; snap refresh core
                     snap install --classic certbot
                     ln -s /snap/bin/certbot /usr/bin/certbot
                     echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
