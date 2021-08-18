@@ -12,6 +12,7 @@ v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
 install_ssl(){
+    systemctl stop nginx.service
     isPort=`netstat -ntlp| grep -E ':80 |:443 '`
     if [ "$isPort" != "" ];then
             clear
@@ -30,8 +31,10 @@ install_ssl(){
     if [ -f "/usr/bin/apt-get" ];then
             isDebian=`cat /etc/issue|grep Debian`
             if [ "$isDebian" != "" ];then
-                    apt install -y certbot
-                    echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
+                    apt install snapd -y
+                    snap install core; sudo snap refresh core
+                    snap install --classic certbot
+                    echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
                     echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/crontabs/root
                     systemctl restart cron.service
                     sleep 3s
