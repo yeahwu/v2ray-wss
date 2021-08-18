@@ -12,7 +12,21 @@ v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
 install_ssl(){
-    systemctl stop nginx.service
+    if [ -f "/usr/bin/apt-get" ];then
+            isDebian=`cat /etc/issue|grep Debian`
+            if [ "$isDebian" != "" ];then
+                    apt install -y net-tools
+                    sleep 3s
+            else
+                    apt install -y net-tools
+                    sleep 3s
+            fi
+    else
+        yum install -y epel-release
+        yum install -y net-tools
+        sleep 3s
+    fi
+
     isPort=`netstat -ntlp| grep -E ':80 |:443 '`
     if [ "$isPort" != "" ];then
             clear
@@ -31,7 +45,7 @@ install_ssl(){
     if [ -f "/usr/bin/apt-get" ];then
             isDebian=`cat /etc/issue|grep Debian`
             if [ "$isDebian" != "" ];then
-                    apt install snapd -y
+                    apt install -y snapd
                     snap install core; sudo snap refresh core
                     snap install --classic certbot
                     echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
@@ -46,7 +60,6 @@ install_ssl(){
                     sleep 3s
             fi
     else
-        yum install -y epel-release
         yum install -y certbot
         echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
         echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/root
@@ -66,7 +79,6 @@ install_nginx(){
                     sleep 3s
             fi
     else
-        yum install -y epel-release
         yum install -y gcc gcc-c++ zlib zlib-devel openssl openssl-devel pcre-devel
         sleep 3s
     fi
