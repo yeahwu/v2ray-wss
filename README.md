@@ -14,6 +14,6 @@
 
 Debian 9, 10, 11
 
-Ubuntu 18.04, 20.04
+Ubuntu 16.0418.04, 20.04
 
 CentOS 7
