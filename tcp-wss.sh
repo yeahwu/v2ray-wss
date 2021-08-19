@@ -221,7 +221,7 @@ UUID：${v2uuid}
 传输协议：ws
 路径：/${v2path}
 底层传输：tls
-注意：8080端口不需要打开tls
+注意：8080是免流端口不需要打开tls
 }
 EOF
 
@@ -295,7 +295,7 @@ client_v2ray(){
     echo "传输协议：ws"
     echo "路径：/${v2path}"
     echo "底层传输：tls"
-    echo "注意：8080端口不需要打开tls"
+    echo "注意：8080是免流端口不需要打开tls"
     echo
 }
 
