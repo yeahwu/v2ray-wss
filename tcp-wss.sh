@@ -258,10 +258,10 @@ install_sslibev(){
 cat >/etc/shadowsocks-libev/config.json<<EOF
 {
     "server":["[::0]","0.0.0.0"],
-    "server_port":1024,
+    "server_port":10240,
     "password":"$v2uuid",
     "timeout":600,
-    "method":"aes-256-gcm"
+    "method":"chacha20-ietf-poly1305"
 }
 EOF
 
@@ -305,9 +305,9 @@ client_sslibev(){
     echo
     echo "===========Shadowsocks配置参数============"
     echo "地址：0.0.0.0"
-    echo "端口：1024"
+    echo "端口：10240"
     echo "UUID：${v2uuid}"
-    echo "加密方式：aes-256-gcm"
+    echo "加密方式：chacha20-ietf-poly1305"
     echo "传输协议：tcp"
     echo
 }
