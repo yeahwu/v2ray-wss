@@ -2,6 +2,8 @@
 
 简单点讲，没域名的用户可以安装 Shadowsocks-libev 代理，有域名的可以安装 V2ray+ Nginx + WebSocket 代理，各取所需。
 
+V2ray+ Nginx + WebSocket 代理，8080 端口是免流端口，关闭 tls 后，只要在伪装域名里填上运营商免流链接就可以免流了。
+
 注：需 root 用户运行脚本；安装 v2ray+ws+tls 代理前不要占用80端口，否则申请证书会失败。
 
 运行脚本：
