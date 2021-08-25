@@ -15,6 +15,7 @@ read domain
 apt install -y certbot php7.3 php7.3-fpm build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
 
 echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
+
 echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/crontabs/root
 
 sed -ri 's|listen = /run/php/php7.3-fpm.sock|listen = 127.0.0.1:9000|' /etc/php/7.3/fpm/pool.d/www.conf
@@ -26,7 +27,6 @@ mkdir -p /var/www/html
 wget https://111111.online/cloud/docs/tz.php.txt -O /var/www/html/tz.php
 
 v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
-
 
     wget https://nginx.org/download/nginx-1.21.1.tar.gz -O - | tar -xz
     cd nginx-1.21.1
@@ -72,7 +72,7 @@ pid /var/run/nginx.pid;
 worker_processes auto;
 worker_rlimit_nofile 51200;
 events {
-    worker_connections 1024;
+    worker_connections 10240;
     multi_accept on;
     use epoll;
 }
@@ -92,14 +92,8 @@ http {
         listen [::]:80;
         server_name $domain;
         root /var/www/html;
-
-        location /$v2path {
-            proxy_redirect off;
-            proxy_pass http://127.0.0.1:8080;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade \$http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header Host \$http_host;
+        location / {
+            return 301 https://\$server_name\$request_uri;
         }
     }
 
@@ -180,14 +174,14 @@ cat >/usr/local/etc/v2ray/client.json<<EOF
 {
 ===========配置参数=============
 地址：${domain}
-端口：443/80/8080
+端口：443/8080
 UUID：${v2uuid}
 加密方式：aes-128-gcm
 传输协议：ws
 路径：/${v2path}
 底层传输：tls
 探针地址：https://${domain}/tz.php
-注意：80和8080端口不需要打开tls
+注意：8080端口不需要打开tls
 }
 EOF
 
@@ -197,12 +191,12 @@ echo "安装已经完成"
 echo
 echo "===========配置参数============"
 echo "地址：${domain}"
-echo "端口：443/80/8080"
+echo "端口：443/8080"
 echo "UUID：${v2uuid}"
 echo "加密方式：aes-128-gcm"
 echo "传输协议：ws"
 echo "路径：/${v2path}"
 echo "底层传输：tls"
 echo "探针地址：https://${domain}/tz.php"
-echo "注意：80和8080端口不需要打开tls"
+echo "注意：8080端口不需要打开tls"
 echo
