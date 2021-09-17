@@ -1,3 +1,5 @@
+讨论坛子：https://bbs.111111.online
+
 搭建 V2ray+ Nginx + WebSocket 和 Shadowsocks-libev 代理脚本，可以选择单独安装或一起安装，支持 Debian、Ubuntu、Centos，并支持甲骨文ARM平台。
 
 简单点讲，没域名的用户可以安装 Shadowsocks-libev 代理，有域名的可以安装 V2ray+ Nginx + WebSocket 代理，各取所需。
