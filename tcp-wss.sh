@@ -306,7 +306,7 @@ client_sslibev(){
     echo "===========Shadowsocks配置参数============"
     echo "地址：0.0.0.0"
     echo "端口：10240"
-    echo "UUID：${v2uuid}"
+    echo "密码：${v2uuid}"
     echo "加密方式：chacha20-ietf-poly1305"
     echo "传输协议：tcp"
     echo
