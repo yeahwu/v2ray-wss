@@ -1,5 +1,5 @@
 #!/bin/sh
-## blog: https://1024.day
+## forum: https://1024.day
 
 if [[ $EUID -ne 0 ]]; then
     clear
@@ -315,7 +315,7 @@ client_sslibev(){
 start_menu(){
     clear
     echo " ================================================== "
-    echo " 无二论坛：https://1024.day                          "
+    echo " 论坛：https://1024.day                              "
     echo " 介绍：一键安装Shadowsocks-libev和v2ray+ws+tls代理    "
     echo " 系统：Ubuntu、Debian、CentOS                        "
     echo " ================================================== "
