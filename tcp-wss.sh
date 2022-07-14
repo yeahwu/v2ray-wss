@@ -15,13 +15,16 @@ install_ssl(){
     if [ -f "/usr/bin/apt-get" ];then
             isDebian=`cat /etc/issue|grep Debian`
             if [ "$isDebian" != "" ];then
+                    apt update -y
                     apt install -y net-tools
                     sleep 3s
             else
+                    apt update -y
                     apt install -y net-tools
                     sleep 3s
             fi
     else
+        yum update -y
         yum install -y epel-release
         yum install -y net-tools
         sleep 3s
