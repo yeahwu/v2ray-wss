@@ -232,17 +232,20 @@ install_sslibev(){
         if [ -f "/usr/bin/apt-get" ];then
             isDebian=`cat /etc/issue|grep Debian`
             if [ "$isDebian" != "" ];then
+                    apt update -y
                     apt install -y --no-install-recommends autoconf automake \
                     debhelper pkg-config asciidoc xmlto libpcre3-dev apg pwgen rng-tools \
                     libev-dev libc-ares-dev dh-autoreconf libsodium-dev libmbedtls-dev git
                     sleep 3s
             else
+                    apt update -y
                     apt install -y --no-install-recommends autoconf automake \
                     debhelper pkg-config asciidoc xmlto libpcre3-dev apg pwgen rng-tools \
                     libev-dev libc-ares-dev dh-autoreconf libsodium-dev libmbedtls-dev git
                     sleep 3s
             fi
     else
+        yum update -y
         yum install epel-release -y
         yum install gcc gettext autoconf libtool automake make pcre-devel asciidoc xmlto c-ares-devel libev-devel libsodium-devel mbedtls-devel git -y  
         sleep 3s
