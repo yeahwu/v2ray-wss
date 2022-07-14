@@ -282,7 +282,7 @@ Restart=on-abort
 WantedBy=multi-user.target
 EOF
 
-    systemctl daemon-reload && systemctl enable shadowsocks.service && systemctl start shadowsocks.service
+    systemctl daemon-reload && systemctl enable shadowsocks.service && systemctl start shadowsocks.service && systemctl restart shadowsocks.service
     cd ..
     rm -rf shadowsocks-libev tcp-wss.sh
 
