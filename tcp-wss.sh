@@ -163,6 +163,11 @@ http {
         ssl_prefer_server_ciphers on;
         ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
         ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
+        
+        location / {
+            return 200 "Hello World !";
+        }
+        
         location /$v2path {
             proxy_redirect off;
             proxy_pass http://127.0.0.1:8080;
