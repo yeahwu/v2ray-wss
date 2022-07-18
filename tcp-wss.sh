@@ -1,5 +1,5 @@
 #!/bin/sh
-## forum: https://1024.day
+# forum: https://1024.day
 
 if [[ $EUID -ne 0 ]]; then
     clear
@@ -87,8 +87,8 @@ install_nginx(){
         sleep 3s
     fi
 
-    wget https://nginx.org/download/nginx-1.21.1.tar.gz -O - | tar -xz
-    cd nginx-1.21.1
+    wget https://nginx.org/download/nginx-1.22.0.tar.gz -O - | tar -xz
+    cd nginx-1.22.0
     ./configure --prefix=/etc/nginx \
     --sbin-path=/usr/sbin/nginx \
     --modules-path=/usr/lib/nginx/modules \
@@ -107,7 +107,7 @@ install_nginx(){
     
     make && make install
     cd ..
-    rm -rf nginx-1.21.1
+    rm -rf nginx-1.22.0
     
 cat >/lib/systemd/system/nginx.service<<EOF
 [Unit]
@@ -162,12 +162,10 @@ http {
         ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
         ssl_prefer_server_ciphers on;
         ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
-        
+        ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;        
         location / {
             return 200 "Hello World !";
-        }
-        
+        }        
         location /$v2path {
             proxy_redirect off;
             proxy_pass http://127.0.0.1:8080;
@@ -216,7 +214,7 @@ cat >/usr/local/etc/v2ray/config.json<<EOF
 }
 EOF
 
-    systemctl enable v2ray.service && systemctl start v2ray.service
+    systemctl enable v2ray.service && systemctl start v2ray.service && systemctl restart v2ray.service
     rm -f tcp-wss.sh install-release.sh
 
 cat >/usr/local/etc/v2ray/client.json<<EOF
