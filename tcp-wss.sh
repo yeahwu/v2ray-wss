@@ -164,6 +164,7 @@ http {
         ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
         ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;        
         location / {
+            default_type text/plain;
             return 200 "Hello World !";
         }        
         location /$v2path {
