@@ -76,14 +76,14 @@ install_nginx(){
         if [ -f "/usr/bin/apt-get" ];then
             isDebian=`cat /etc/issue|grep Debian`
             if [ "$isDebian" != "" ];then
-                    apt install -y build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
+                    apt install -y build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev curl
                     sleep 3s
             else
-                    apt install -y build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev
+                    apt install -y build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev curl
                     sleep 3s
             fi
     else
-        yum install -y gcc gcc-c++ zlib zlib-devel openssl openssl-devel pcre-devel
+        yum install -y gcc gcc-c++ zlib zlib-devel openssl openssl-devel pcre-devel curl
         sleep 3s
     fi
 
@@ -183,7 +183,7 @@ EOF
 }
 
 install_v2ray(){    
-    wget https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh && bash install-release.sh
+    bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) --version v4.45.2
     
 cat >/usr/local/etc/v2ray/config.json<<EOF
 {
