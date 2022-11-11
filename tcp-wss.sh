@@ -57,8 +57,11 @@ install_ssl(){
                     systemctl restart cron.service
                     sleep 3s
             else
-                    apt install -y certbot
-                    echo "A" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
+                    apt install -y snapd
+                    snap install core; snap refresh core
+                    snap install --classic certbot
+                    ln -s /snap/bin/certbot /usr/bin/certbot
+                    echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
                     echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/crontabs/root
                     systemctl restart cron.service
                     sleep 3s
