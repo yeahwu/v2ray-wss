@@ -141,8 +141,10 @@ EOF
 }
 
 acme_ssl(){    
+    apt-get -y install cron socat || yum -y install cronie socat
     curl https://get.acme.sh | sh -s email=my@example.com
-    ~/.acme.sh/acme.sh --issue -d $domain --keylength ec-256 --nginx --post-hook "~/.acme.sh/acme.sh --installcert -d $domain --ecc --fullchain-file /etc/letsencrypt/live/$domain/fullchain.pem --key-file /etc/letsencrypt/live/$domain/privkey.pem --reloadcmd \"systemctl restart nginx\""
+    mkdir -p /etc/letsencrypt/live/$domain
+    ~/.acme.sh/acme.sh --issue -d $domain --standalone --keylength ec-256 --pre-hook "systemctl stop nginx" --post-hook "~/.acme.sh/acme.sh --installcert -d $domain --ecc --fullchain-file /etc/letsencrypt/live/$domain/fullchain.pem --key-file /etc/letsencrypt/live/$domain/privkey.pem --reloadcmd \"systemctl restart nginx\""
 }
 
 install_v2ray(){    
