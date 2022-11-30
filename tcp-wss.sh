@@ -11,83 +11,38 @@ timedatectl set-timezone Asia/Shanghai
 v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
-install_ssl(){
-    if [ -f "/usr/bin/apt-get" ];then
-            isDebian=`cat /etc/issue|grep Debian`
-            if [ "$isDebian" != "" ];then
-                    apt update -y
-                    apt install -y net-tools
-                    sleep 3s
-            else
-                    apt update -y
-                    apt install -y net-tools
-                    sleep 3s
-            fi
+install_precheck(){
+    echo "====输入已经DNS解析好的域名===="
+    read domain
+    
+    if [ -f "/usr/bin/apt-get" ]; then
+        apt-get update -y
+        apt-get install -y net-tools
     else
         yum update -y
         yum install -y epel-release
         yum install -y net-tools
-        sleep 3s
     fi
 
+    sleep 3
     isPort=`netstat -ntlp| grep -E ':80 |:443 '`
     if [ "$isPort" != "" ];then
-            clear
-            echo " ================================================== "
-            echo " 80或443端口被占用，请先释放端口再运行此脚本"
-            echo
-            echo " 端口占用信息如下："
-            echo $isPort
-            echo " ================================================== "
-            exit 1
-    fi
-    
-    echo "====输入已经DNS解析好的域名===="
-    read domain
-    
-    if [ -f "/usr/bin/apt-get" ];then
-            isDebian=`cat /etc/issue|grep Debian`
-            if [ "$isDebian" != "" ];then
-                    apt install -y snapd
-                    snap install core; snap refresh core
-                    snap install --classic certbot
-                    ln -s /snap/bin/certbot /usr/bin/certbot
-                    echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
-                    echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/crontabs/root
-                    systemctl restart cron.service
-                    sleep 3s
-            else
-                    apt install -y snapd
-                    snap install core; snap refresh core
-                    snap install --classic certbot
-                    ln -s /snap/bin/certbot /usr/bin/certbot
-                    echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
-                    echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/crontabs/root
-                    systemctl restart cron.service
-                    sleep 3s
-            fi
-    else
-        yum install -y certbot
-        echo "Y" | certbot certonly --renew-by-default --register-unsafely-without-email --standalone -d $domain
-        echo -e "0 2 1 * * /usr/bin/certbot renew --pre-hook \"service nginx stop\" --post-hook \"service nginx start\"" >> /var/spool/cron/root
-        systemctl restart crond.service
-        sleep 3s
+        clear
+        echo " ================================================== "
+        echo " 80或443端口被占用，请先释放端口再运行此脚本"
+        echo
+        echo " 端口占用信息如下："
+        echo $isPort
+        echo " ================================================== "
+        exit 1
     fi
 }
 
 install_nginx(){
-        if [ -f "/usr/bin/apt-get" ];then
-            isDebian=`cat /etc/issue|grep Debian`
-            if [ "$isDebian" != "" ];then
-                    apt install -y build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev curl
-                    sleep 3s
-            else
-                    apt install -y build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev curl
-                    sleep 3s
-            fi
+    if [ -f "/usr/bin/apt-get" ];then
+        apt-get install -y build-essential libtool libpcre3 libpcre3-dev zlib1g-dev openssl libssl-dev curl
     else
         yum install -y gcc gcc-c++ zlib zlib-devel openssl openssl-devel pcre-devel curl
-        sleep 3s
     fi
 
     wget https://nginx.org/download/nginx-1.22.0.tar.gz -O - | tar -xz
@@ -185,6 +140,11 @@ EOF
     systemctl daemon-reload && systemctl enable nginx.service && systemctl start nginx.service
 }
 
+acme_ssl(){    
+    curl https://get.acme.sh | sh -s email=my@example.com
+    ~/.acme.sh/acme.sh --issue -d $domain --keylength ec-256 --nginx --post-hook "~/.acme.sh/acme.sh --installcert -d $domain --ecc --fullchain-file /etc/letsencrypt/live/$domain/fullchain.pem --key-file /etc/letsencrypt/live/$domain/privkey.pem --reloadcmd \"systemctl restart nginx\""
+}
+
 install_v2ray(){    
     bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) --version v4.45.2
     
@@ -239,26 +199,15 @@ EOF
 }
 
 install_sslibev(){
-        if [ -f "/usr/bin/apt-get" ];then
-            isDebian=`cat /etc/issue|grep Debian`
-            if [ "$isDebian" != "" ];then
-                    apt update -y
-                    apt install -y --no-install-recommends autoconf automake \
-                    debhelper pkg-config asciidoc xmlto libpcre3-dev apg pwgen rng-tools \
-                    libev-dev libc-ares-dev dh-autoreconf libsodium-dev libmbedtls-dev git
-                    sleep 3s
-            else
-                    apt update -y
-                    apt install -y --no-install-recommends autoconf automake \
-                    debhelper pkg-config asciidoc xmlto libpcre3-dev apg pwgen rng-tools \
-                    libev-dev libc-ares-dev dh-autoreconf libsodium-dev libmbedtls-dev git
-                    sleep 3s
-            fi
+    if [ -f "/usr/bin/apt-get" ];then
+        apt-get update -y
+        apt-get install -y --no-install-recommends \
+            autoconf automake debhelper pkg-config asciidoc xmlto libpcre3-dev apg pwgen rng-tools \
+            libev-dev libc-ares-dev dh-autoreconf libsodium-dev libmbedtls-dev git
     else
         yum update -y
         yum install epel-release -y
         yum install gcc gettext autoconf libtool automake make pcre-devel asciidoc xmlto c-ares-devel libev-devel libsodium-devel mbedtls-devel git -y  
-        sleep 3s
     fi
 
     git clone https://github.com/shadowsocks/shadowsocks-libev.git
@@ -292,7 +241,6 @@ EOF
     systemctl daemon-reload && systemctl enable shadowsocks.service && systemctl start shadowsocks.service && systemctl restart shadowsocks.service
     cd ..
     rm -rf shadowsocks-libev tcp-wss.sh
-
     clear
 }
 
@@ -345,14 +293,16 @@ start_menu(){
     client_sslibev
     ;;
     2)
-    install_ssl
+    install_precheck
     install_nginx
+    acme_ssl
     install_v2ray
     client_v2ray
     ;;
     3)
-    install_ssl
+    install_precheck
     install_nginx
+    acme_ssl
     install_v2ray
     install_sslibev
     client_v2ray
