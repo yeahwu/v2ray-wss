@@ -17,11 +17,11 @@ install_precheck(){
     
     if [ -f "/usr/bin/apt-get" ]; then
         apt-get update -y
-        apt-get install -y net-tools
+        apt-get install -y net-tools curl
     else
         yum update -y
         yum install -y epel-release
-        yum install -y net-tools
+        yum install -y net-tools curl
     fi
 
     sleep 3
