@@ -11,10 +11,9 @@ timedatectl set-timezone Asia/Shanghai
 v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
-install_precheck(){
-    echo "====输入已经DNS解析好的域名===="
-    read domain
-    
+install_precheck() {
+    read -p "请输入你的域名" domain
+
     if [ -f "/usr/bin/apt-get" ]; then
         apt-get update -y
         apt-get install -y net-tools curl
@@ -24,9 +23,8 @@ install_precheck(){
         yum install -y net-tools curl
     fi
 
-    sleep 3
-    isPort=`netstat -ntlp| grep -E ':80 |:443 '`
-    if [ "$isPort" != "" ];then
+    isPort=$(netstat -ntlp | grep -E ':80 |:443 ')
+    if [ "$isPort" != "" ]; then
         clear
         echo " ================================================== "
         echo " 80或443端口被占用，请先释放端口再运行此脚本"
@@ -38,14 +36,14 @@ install_precheck(){
     fi
 }
 
-install_nginx(){
-    if [ -f "/usr/bin/apt-get" ];then
+install_nginx() {
+    if [ -f "/usr/bin/apt-get" ]; then
         apt-get install -y nginx
     else
         yum install -y nginx
     fi
 
-cat >/etc/nginx/nginx.conf<<EOF
+    cat >/etc/nginx/nginx.conf <<EOF
 pid /var/run/nginx.pid;
 worker_processes auto;
 worker_rlimit_nofile 51200;
@@ -99,17 +97,31 @@ http {
 EOF
 }
 
-acme_ssl(){    
-    apt-get -y install cron socat || yum -y install cronie socat
-    curl https://get.acme.sh | sh -s email=my@example.com
-    mkdir -p /etc/letsencrypt/live/$domain
-    ~/.acme.sh/acme.sh --issue -d $domain --standalone --keylength ec-256 --pre-hook "systemctl stop nginx" --post-hook "~/.acme.sh/acme.sh --installcert -d $domain --ecc --fullchain-file /etc/letsencrypt/live/$domain/fullchain.pem --key-file /etc/letsencrypt/live/$domain/privkey.pem --reloadcmd \"systemctl restart nginx\""
+acme_ssl() {
+    echo
+    if [ -f "/usr/bin/apt-get" ]; then
+        apt-get install -y certbot
+    else
+        yum install -y certbot
+    fi
+
+    if /etc/letsencrypt/live/$domain/fullchain.pem; then
+        echo "证书已经申请过，无需再次申请"
+    else
+        echo "证书申请中，请稍等..."
+        certbot certonly \
+            --standalone \
+            --agree-tos \
+            --no-eff-email \
+            --email ssl@app.ml \
+            -d ${domain}
+    fi
 }
 
-install_v2ray(){    
+install_v2ray() {
     bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) --version v4.45.2
-    
-cat >/usr/local/etc/v2ray/config.json<<EOF
+
+    cat >/usr/local/etc/v2ray/config.json <<EOF
 {
   "inbounds": [
     {
@@ -142,7 +154,7 @@ EOF
     systemctl enable v2ray.service && systemctl restart v2ray.service
     rm -f tcp-wss.sh install-release.sh
 
-cat >/usr/local/etc/v2ray/client.json<<EOF
+    cat >/usr/local/etc/v2ray/client.json <<EOF
 {
 ===========配置参数=============
 地址：${domain}
@@ -156,11 +168,10 @@ UUID：${v2uuid}
 }
 EOF
 
-    clear
 }
 
-install_sslibev(){
-    if [ -f "/usr/bin/apt-get" ];then
+install_sslibev() {
+    if [ -f "/usr/bin/apt-get" ]; then
         apt-get update -y
         apt-get install -y --no-install-recommends \
             autoconf automake debhelper pkg-config asciidoc xmlto libpcre3-dev apg pwgen rng-tools \
@@ -168,7 +179,7 @@ install_sslibev(){
     else
         yum update -y
         yum install epel-release -y
-        yum install gcc gettext autoconf libtool automake make pcre-devel asciidoc xmlto c-ares-devel libev-devel libsodium-devel mbedtls-devel git -y  
+        yum install gcc gettext autoconf libtool automake make pcre-devel asciidoc xmlto c-ares-devel libev-devel libsodium-devel mbedtls-devel git -y
     fi
 
     git clone https://github.com/shadowsocks/shadowsocks-libev.git
@@ -178,7 +189,7 @@ install_sslibev(){
     make install
     mkdir -p /etc/shadowsocks-libev
 
-cat >/etc/shadowsocks-libev/config.json<<EOF
+    cat >/etc/shadowsocks-libev/config.json <<EOF
 {
     "server":["[::0]","0.0.0.0"],
     "server_port":10240,
@@ -188,7 +199,7 @@ cat >/etc/shadowsocks-libev/config.json<<EOF
 }
 EOF
 
-cat >/etc/systemd/system/shadowsocks.service<<EOF
+    cat >/etc/systemd/system/shadowsocks.service <<EOF
 [Unit]
 Description=Shadowsocks Server
 After=network.target
@@ -205,7 +216,7 @@ EOF
     clear
 }
 
-client_v2ray(){
+client_v2ray() {
     echo
     echo "安装已经完成"
     echo
@@ -219,9 +230,14 @@ client_v2ray(){
     echo "底层传输：tls"
     echo "注意：8080是免流端口不需要打开tls"
     echo
+    echo "===========surge 配置参数============"
+    echo
+    echo "v2ray = vmess, ${domain}, 443, username=${v2uuid}, skip-cert-verify=true, sni=${domain}, ws=true, ws-path=/dad464, ws-headers=Host:"${domain}", vmess-aead=true, tls=true"
+    echo
+    echo "===========clash 配置参数============"
 }
 
-client_sslibev(){
+client_sslibev() {
     echo
     echo "安装已经完成"
     echo
@@ -234,7 +250,7 @@ client_sslibev(){
     echo
 }
 
-start_menu(){
+start_menu() {
     clear
     echo " ================================================== "
     echo " 论坛：https://1024.day                              "
@@ -250,35 +266,34 @@ start_menu(){
     read -p "请输入数字:" num
     case "$num" in
     1)
-    install_sslibev
-    client_sslibev
-    ;;
+        install_sslibev
+        client_sslibev
+        ;;
     2)
-    install_precheck
-    install_nginx
-    acme_ssl
-    install_v2ray
-    client_v2ray
-    ;;
+        install_precheck
+        install_nginx
+        acme_ssl
+        install_v2ray
+        client_v2ray
+        ;;
     3)
-    install_precheck
-    install_nginx
-    acme_ssl
-    install_v2ray
-    install_sslibev
-    client_v2ray
-    client_sslibev
-    ;;
+        install_precheck
+        install_nginx
+        acme_ssl
+        install_v2ray
+        install_sslibev
+        client_v2ray
+        client_sslibev
+        ;;
     0)
-    exit 1
-    ;;
+        exit 1
+        ;;
     *)
-    clear
-    echo "请输入正确数字"
-    sleep 2s
-    start_menu
-    ;;
+        clear
+        echo "请输入正确数字"
+        sleep 2s
+        start_menu
+        ;;
     esac
 }
-
 start_menu
