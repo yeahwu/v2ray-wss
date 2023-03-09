@@ -40,9 +40,9 @@ install_precheck(){
 
 install_nginx(){
     if [ -f "/usr/bin/apt-get" ];then
-        apt-get install -y nginx
+        apt-get install -y nginx cron socat
     else
-        yum install -y nginx
+        yum install -y nginx cronie socat
     fi
 
 cat >/etc/nginx/nginx.conf<<EOF
@@ -100,14 +100,13 @@ EOF
 }
 
 acme_ssl(){    
-    apt-get -y install cron socat || yum -y install cronie socat
     curl https://get.acme.sh | sh -s email=my@example.com
     mkdir -p /etc/letsencrypt/live/$domain
     ~/.acme.sh/acme.sh --issue -d $domain --standalone --keylength ec-256 --pre-hook "systemctl stop nginx" --post-hook "~/.acme.sh/acme.sh --installcert -d $domain --ecc --fullchain-file /etc/letsencrypt/live/$domain/fullchain.pem --key-file /etc/letsencrypt/live/$domain/privkey.pem --reloadcmd \"systemctl restart nginx\""
 }
 
 install_v2ray(){    
-    bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) --version v4.45.2
+    bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
     
 cat >/usr/local/etc/v2ray/config.json<<EOF
 {
