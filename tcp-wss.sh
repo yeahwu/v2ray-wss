@@ -10,6 +10,7 @@ fi
 timedatectl set-timezone Asia/Shanghai
 v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
+ipaddr=$(hostname -I)
 
 install_precheck(){
     echo "====输入已经DNS解析好的域名===="
@@ -225,7 +226,7 @@ client_sslibev(){
     echo "安装已经完成"
     echo
     echo "===========Shadowsocks配置参数============"
-    echo "地址：0.0.0.0"
+    echo "地址：${ipaddr}"
     echo "端口：10240"
     echo "密码：${v2uuid}"
     echo "加密方式：chacha20-ietf-poly1305"
