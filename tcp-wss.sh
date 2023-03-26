@@ -66,14 +66,7 @@ http {
     include /etc/nginx/mime.types;
     access_log off;
     error_log /dev/null;
-    server {
-        listen 80;
-        listen [::]:80;
-        server_name $domain;
-        location / {
-            return 301 https://\$server_name\$request_uri;
-        }
-    }
+
     server {
         listen 443 ssl http2;
         listen [::]:443 ssl http2;
