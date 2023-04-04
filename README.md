@@ -26,3 +26,6 @@ WS客户端代理信息保存在：
 
 Shadowsocks客户端代理信息：
 `cat /etc/shadowsocks-libev/config.json`
+
+卸载方法如下：
+https://1024.day/d/1296
