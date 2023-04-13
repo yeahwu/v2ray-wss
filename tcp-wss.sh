@@ -174,7 +174,7 @@ install_sslibev(){
 cat >/etc/shadowsocks-libev/config.json<<EOF
 {
     "server":["[::0]","0.0.0.0"],
-    "server_port":10240,
+    "server_port":2083,
     "password":"$v2uuid",
     "timeout":600,
     "method":"chacha20-ietf-poly1305"
@@ -220,7 +220,7 @@ client_sslibev(){
     echo
     echo "===========Shadowsocks配置参数============"
     echo "地址：${ipaddr}"
-    echo "端口：10240"
+    echo "端口：2083"
     echo "密码：${v2uuid}"
     echo "加密方式：chacha20-ietf-poly1305"
     echo "传输协议：tcp"
