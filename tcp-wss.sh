@@ -133,7 +133,6 @@ cat >/usr/local/etc/v2ray/config.json<<EOF
 EOF
 
     systemctl enable v2ray.service && systemctl restart v2ray.service
-    rm -f tcp-wss.sh install-release.sh
 
 cat >/usr/local/etc/v2ray/client.json<<EOF
 {
@@ -194,7 +193,6 @@ EOF
 
     systemctl daemon-reload && systemctl enable shadowsocks.service && systemctl restart shadowsocks.service
     cd ..
-    rm -rf shadowsocks-libev tcp-wss.sh
     clear
 }
 
