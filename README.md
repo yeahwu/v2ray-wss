@@ -7,7 +7,9 @@ WSS 代理，443和8080端口都是可用端口，8080 是免流端口，关闭 
 
 运行脚本：
 
-`wget -qO- https://raw.githubusercontent.com/yeahwu/v2ray-wss/main/tcp-wss.sh | bash`
+```
+wget -qO- https://raw.githubusercontent.com/yeahwu/v2ray-wss/main/tcp-wss.sh | bash
+```
 
 便宜VPS推荐：https://hostalk.net/deals.html
 
