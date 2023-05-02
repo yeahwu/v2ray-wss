@@ -80,7 +80,7 @@ cat >/usr/local/etc/xray/config.json<<EOF
 EOF
 
     systemctl enable xray.service && systemctl restart xray.service
-    rm -f tcp-wss.sh install-release.sh
+    rm -f tcp-wss.sh install-release.sh reality.sh
 
 cat >/usr/local/etc/xray/reclient.json<<EOF
 {
