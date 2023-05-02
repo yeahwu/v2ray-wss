@@ -9,7 +9,15 @@ fi
 
 timedatectl set-timezone Asia/Shanghai
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
-ipaddr=$(hostname -I)
+
+getIP() {
+    local serverIP=
+    serverIP=$(curl -s -4 http://www.cloudflare.com/cdn-cgi/trace | grep "ip" | awk -F "[=]" '{print $2}')
+    if [[ -z "${serverIP}" ]]; then
+        serverIP=$(curl -s -6 http://www.cloudflare.com/cdn-cgi/trace | grep "ip" | awk -F "[=]" '{print $2}')
+    fi
+    echo "${serverIP}"
+}
 
 install_xray(){ 
     if [ -f "/usr/bin/apt-get" ]; then
@@ -86,7 +94,7 @@ cat >/usr/local/etc/xray/reclient.json<<EOF
 {
 ===========配置参数=============
 代理模式：vless
-地址：${ipaddr}
+地址：$(getIP)
 端口：443
 UUID：${v2uuid}
 流控：xtls-rprx-vision
@@ -95,6 +103,9 @@ Public key：${rePublicKey}
 底层传输：reality
 SNI: www.amazon.com
 shortIds: 88
+====================================
+vless://$v2uuid@$(getIP):443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.amazon.com&fp=chrome&pbk=$rePublicKey&sid=88&type=tcp&headerType=none#1024-reality
+
 }
 EOF
 
@@ -107,7 +118,7 @@ client_re(){
     echo
     echo "===========reality配置参数============"
     echo "代理模式：vless"
-    echo "地址：${ipaddr}"
+    echo "地址：$(getIP)"
     echo "端口：443"
     echo "UUID：${v2uuid}"
     echo "流控：xtls-rprx-vision"
@@ -116,10 +127,13 @@ client_re(){
     echo "底层传输：reality"
     echo "SNI: www.amazon.com"
     echo "shortIds: 88"
+    echo "===================================="
+    echo "vless://$v2uuid@$(getIP):443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.amazon.com&fp=chrome&pbk=$rePublicKey&sid=88&type=tcp&headerType=none#1024-reality"
     echo
 }
-
 
 install_xray
 reconfig
 client_re
+
+
