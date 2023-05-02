@@ -132,7 +132,7 @@ cat >/usr/local/etc/v2ray/config.json<<EOF
 }
 EOF
 
-    systemctl enable v2ray.service && systemctl restart v2ray.service
+    systemctl enable v2ray.service && systemctl restart v2ray.service && systemctl restart nginx.service
     rm -f tcp-wss.sh install-release.sh
 
 cat >/usr/local/etc/v2ray/client.json<<EOF
