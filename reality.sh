@@ -104,7 +104,7 @@ Public key：${rePublicKey}
 SNI: www.amazon.com
 shortIds: 88
 ====================================
-vless://$v2uuid@$(getIP):443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.amazon.com&fp=chrome&pbk=$rePublicKey&sid=88&type=tcp&headerType=none#1024-reality
+vless://${v2uuid}@$(getIP):443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.amazon.com&fp=chrome&pbk=${rePublicKey}&sid=88&type=tcp&headerType=none#1024-reality
 
 }
 EOF
@@ -128,12 +128,10 @@ client_re(){
     echo "SNI: www.amazon.com"
     echo "shortIds: 88"
     echo "===================================="
-    echo "vless://$v2uuid@$(getIP):443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.amazon.com&fp=chrome&pbk=$rePublicKey&sid=88&type=tcp&headerType=none#1024-reality"
+    echo "vless://${v2uuid}@$(getIP):443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.amazon.com&fp=chrome&pbk=${rePublicKey}&sid=88&type=tcp&headerType=none#1024-reality"
     echo
 }
 
 install_xray
 reconfig
 client_re
-
-
