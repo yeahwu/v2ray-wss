@@ -96,7 +96,7 @@ EOF
 acme_ssl(){    
     curl https://get.acme.sh | sh -s email=my@example.com
     mkdir -p /etc/letsencrypt/live/$domain
-    ~/.acme.sh/acme.sh --issue -d $domain --standalone --keylength ec-256 --pre-hook "systemctl stop nginx" --post-hook "~/.acme.sh/acme.sh --installcert -d $domain --ecc --fullchain-file /etc/letsencrypt/live/$domain/fullchain.pem --key-file /etc/letsencrypt/live/$domain/privkey.pem --reloadcmd \"systemctl restart nginx\""
+    ~/.acme.sh/acme.sh --issue -d $domain --standalone --keylength ec-256 --pre-hook "systemctl stop nginx" --post-hook "~/.acme.sh/acme.sh --installcert -d $domain --ecc --fullchain-file /etc/letsencrypt/live/$domain/fullchain.pem --key-file /etc/letsencrypt/live/$domain/privkey.pem --reloadcmd \"systemctl start nginx\""
 }
 
 install_v2ray(){    
@@ -138,6 +138,7 @@ EOF
 cat >/usr/local/etc/v2ray/client.json<<EOF
 {
 ===========配置参数=============
+协议：VMess
 地址：${domain}
 端口：443/8080
 UUID：${v2uuid}
@@ -207,6 +208,7 @@ client_v2ray(){
     echo "安装已经完成"
     echo
     echo "===========v2ray配置参数============"
+    echo "协议：VMess"
     echo "地址：${domain}"
     echo "端口：443/8080"
     echo "UUID：${v2uuid}"
