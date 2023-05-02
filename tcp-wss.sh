@@ -198,6 +198,10 @@ EOF
     clear
 }
 
+install_reality(){
+    wget https://raw.githubusercontent.com/yeahwu/v2ray-wss/main/reality.sh && bash reality.sh
+}
+
 client_v2ray(){
     echo
     echo "安装已经完成"
@@ -231,13 +235,13 @@ start_menu(){
     clear
     echo " ================================================== "
     echo " 论坛：https://1024.day                              "
-    echo " 介绍：一键安装Shadowsocks-libev和v2ray+ws+tls代理    "
+    echo " 介绍：一键安装SS-libev，v2ray+ws+tls和Reality代理    "
     echo " 系统：Ubuntu、Debian、CentOS                        "
     echo " ================================================== "
     echo
-    echo " 1. 安装Shadowsocks-libev"
-    echo " 2. 安装v2ray+ws+tls"
-    echo " 3. 同时安装上述两种代理"
+    echo " 1. 安装 Shadowsocks-libev"
+    echo " 2. 安装 v2ray+ws+tls"
+    echo " 3. 安装 Reality"
     echo " 0. 退出脚本"
     echo
     read -p "请输入数字:" num
@@ -254,13 +258,7 @@ start_menu(){
     client_v2ray
     ;;
     3)
-    install_precheck
-    install_nginx
-    acme_ssl
-    install_v2ray
-    install_sslibev
-    client_v2ray
-    client_sslibev
+    install_reality
     ;;
     0)
     exit 1
