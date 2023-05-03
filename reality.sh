@@ -10,7 +10,7 @@ fi
 timedatectl set-timezone Asia/Shanghai
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
-getIP() {
+getIP(){
     local serverIP=
     serverIP=$(curl -s -4 http://www.cloudflare.com/cdn-cgi/trace | grep "ip" | awk -F "[=]" '{print $2}')
     if [[ -z "${serverIP}" ]]; then
@@ -68,7 +68,7 @@ cat >/usr/local/etc/xray/config.json<<EOF
                     "maxTimeDiff": 0,
                     "shortIds": [
                         "88",
-                        "888888"
+                        "123abc"
                     ]
                 }
             }
