@@ -204,6 +204,8 @@ install_reality(){
 }
 
 client_v2ray(){
+    wslink=$(echo -n "{\"port\":443,\"ps\":\"1024-wss\",\"tls\":\"tls\",\"id\":\"${v2uuid}\",\"aid\":0,\"v\":2,\"host\":\"${domain}\",\"type\":\"none\",\"path\":\"/${v2path}\",\"net\":\"ws\",\"add\":\"${domain}\",\"allowInsecure\":0,\"method\":\"none\",\"peer\":\"${domain}\",\"sni\":\"${domain}\"}" | base64 -w 0)
+
     echo
     echo "安装已经完成"
     echo
@@ -217,6 +219,8 @@ client_v2ray(){
     echo "路径：/${v2path}"
     echo "底层传输：tls"
     echo "注意：8080是免流端口不需要打开tls"
+    echo "===================================="
+    echo "vmess://${wslink}"
     echo
 }
 
