@@ -59,8 +59,9 @@ cat >/usr/local/etc/xray/config.json<<EOF
                     "dest": "www.amazon.com:443",
                     "xver": 0,
                     "serverNames": [
-                        "amazon.com",
-                        "www.amazon.com"
+                        "www.amazon.com",
+                        "addons.mozilla.org",
+                        "learn.microsoft.com"
                     ],
                     "privateKey": "$rePrivateKey",
                     "minClientVer": "",
