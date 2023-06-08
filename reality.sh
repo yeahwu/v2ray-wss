@@ -10,6 +10,13 @@ fi
 timedatectl set-timezone Asia/Shanghai
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
+read -t 10 -p "回车或等待15秒为默认端口443，或者自定义端口请输入(1-65535)："  getPort
+if [ -z $getPort ];then
+    getPort=443
+fi
+echo $getPort
+
+
 getIP(){
     local serverIP=
     serverIP=$(curl -s -4 http://www.cloudflare.com/cdn-cgi/trace | grep "ip" | awk -F "[=]" '{print $2}')
@@ -40,7 +47,7 @@ cat >/usr/local/etc/xray/config.json<<EOF
 {
     "inbounds": [
         {
-            "port": 8443,
+            "port": $getPort,
             "protocol": "vless",
             "settings": {
                 "clients": [
@@ -96,7 +103,7 @@ cat >/usr/local/etc/xray/reclient.json<<EOF
 ===========配置参数=============
 代理模式：vless
 地址：$(getIP)
-端口：8443
+端口：${getPort}
 UUID：${v2uuid}
 流控：xtls-rprx-vision
 传输协议：tcp
@@ -105,7 +112,7 @@ Public key：${rePublicKey}
 SNI: www.amazon.com
 shortIds: 88
 ====================================
-vless://${v2uuid}@$(getIP):8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.amazon.com&fp=chrome&pbk=${rePublicKey}&sid=88&type=tcp&headerType=none#1024-reality
+vless://${v2uuid}@$(getIP):${getPort}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.amazon.com&fp=chrome&pbk=${rePublicKey}&sid=88&type=tcp&headerType=none#1024-reality
 
 }
 EOF
@@ -120,7 +127,7 @@ client_re(){
     echo "===========reality配置参数============"
     echo "代理模式：vless"
     echo "地址：$(getIP)"
-    echo "端口：8443"
+    echo "端口：${getPort}"
     echo "UUID：${v2uuid}"
     echo "流控：xtls-rprx-vision"
     echo "传输协议：tcp"
@@ -129,7 +136,7 @@ client_re(){
     echo "SNI: www.amazon.com"
     echo "shortIds: 88"
     echo "===================================="
-    echo "vless://${v2uuid}@$(getIP):8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.amazon.com&fp=chrome&pbk=${rePublicKey}&sid=88&type=tcp&headerType=none#1024-reality"
+    echo "vless://${v2uuid}@$(getIP):${getPort}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.amazon.com&fp=chrome&pbk=${rePublicKey}&sid=88&type=tcp&headerType=none#1024-reality"
     echo
 }
 
