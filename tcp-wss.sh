@@ -16,7 +16,7 @@ install_precheck(){
     echo "====输入已经DNS解析好的域名===="
     read domain
 
-    read -t 10 -p "回车或等待15秒为默认端口443，或者自定义端口请输入(1-65535)："  getPort
+    read -t 15 -p "回车或等待15秒为默认端口443，或者自定义端口请输入(1-65535)："  getPort
     if [ -z $getPort ];then
         getPort=443
     fi
