@@ -14,8 +14,6 @@ read -t 10 -p "回车或等待15秒为默认端口443，或者自定义端口请
 if [ -z $getPort ];then
     getPort=443
 fi
-echo $getPort
-
 
 getIP(){
     local serverIP=
