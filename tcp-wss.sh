@@ -15,6 +15,11 @@ ipaddr=$(hostname -I)
 install_precheck(){
     echo "====输入已经DNS解析好的域名===="
     read domain
+
+    read -t 10 -p "回车或等待15秒为默认端口443，或者自定义端口请输入(1-65535)："  getPort
+    if [ -z $getPort ];then
+        getPort=443
+    fi
     
     if [ -f "/usr/bin/apt-get" ]; then
         apt-get update -y
@@ -68,8 +73,7 @@ http {
     error_log /dev/null;
 
     server {
-        listen 443 ssl http2;
-        listen [::]:443 ssl http2;
+        listen $getPort ssl http2;
         server_name $domain;
         ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
         ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
@@ -140,7 +144,7 @@ cat >/usr/local/etc/v2ray/client.json<<EOF
 ===========配置参数=============
 协议：VMess
 地址：${domain}
-端口：443/8080
+端口：${getPort}
 UUID：${v2uuid}
 加密方式：aes-128-gcm
 传输协议：ws
@@ -204,7 +208,7 @@ install_reality(){
 }
 
 client_v2ray(){
-    wslink=$(echo -n "{\"port\":443,\"ps\":\"1024-wss\",\"tls\":\"tls\",\"id\":\"${v2uuid}\",\"aid\":0,\"v\":2,\"host\":\"${domain}\",\"type\":\"none\",\"path\":\"/${v2path}\",\"net\":\"ws\",\"add\":\"${domain}\",\"allowInsecure\":0,\"method\":\"none\",\"peer\":\"${domain}\",\"sni\":\"${domain}\"}" | base64 -w 0)
+    wslink=$(echo -n "{\"port\":${getPort},\"ps\":\"1024-wss\",\"tls\":\"tls\",\"id\":\"${v2uuid}\",\"aid\":0,\"v\":2,\"host\":\"${domain}\",\"type\":\"none\",\"path\":\"/${v2path}\",\"net\":\"ws\",\"add\":\"${domain}\",\"allowInsecure\":0,\"method\":\"none\",\"peer\":\"${domain}\",\"sni\":\"${domain}\"}" | base64 -w 0)
 
     echo
     echo "安装已经完成"
@@ -212,7 +216,7 @@ client_v2ray(){
     echo "===========v2ray配置参数============"
     echo "协议：VMess"
     echo "地址：${domain}"
-    echo "端口：443/8080"
+    echo "端口：${getPort}"
     echo "UUID：${v2uuid}"
     echo "加密方式：aes-128-gcm"
     echo "传输协议：ws"
