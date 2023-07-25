@@ -10,7 +10,16 @@ fi
 timedatectl set-timezone Asia/Shanghai
 v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
-ipaddr=$(hostname -I)
+ssport=$(shuf -i 2000-65000 -n 1)
+
+getIP(){
+    local serverIP=
+    serverIP=$(curl -s -4 http://www.cloudflare.com/cdn-cgi/trace | grep "ip" | awk -F "[=]" '{print $2}')
+    if [[ -z "${serverIP}" ]]; then
+        serverIP=$(curl -s -6 http://www.cloudflare.com/cdn-cgi/trace | grep "ip" | awk -F "[=]" '{print $2}')
+    fi
+    echo "${serverIP}"
+}
 
 install_precheck(){
     echo "====输入已经DNS解析好的域名===="
@@ -180,7 +189,7 @@ install_sslibev(){
 cat >/etc/shadowsocks-libev/config.json<<EOF
 {
     "server":["[::0]","0.0.0.0"],
-    "server_port":2083,
+    "server_port":$ssport,
     "password":"$v2uuid",
     "timeout":600,
     "method":"chacha20-ietf-poly1305"
@@ -230,15 +239,19 @@ client_v2ray(){
 }
 
 client_sslibev(){
+    sslink=$(echo -n "chacha20-ietf-poly1305:${v2uuid}@$(getIP):${ssport}" | base64 -w 0)
+
     echo
     echo "安装已经完成"
     echo
     echo "===========Shadowsocks配置参数============"
-    echo "地址：${ipaddr}"
-    echo "端口：2083"
+    echo "地址：$(getIP)"
+    echo "端口：${ssport}"
     echo "密码：${v2uuid}"
     echo "加密方式：chacha20-ietf-poly1305"
     echo "传输协议：tcp"
+    echo "========================================="
+    echo "ss://${sslink}"
     echo
 }
 
