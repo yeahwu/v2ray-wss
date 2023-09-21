@@ -66,6 +66,7 @@ cat >/usr/local/etc/xray/config.json<<EOF
                     "serverNames": [
                         "www.amazon.com",
                         "addons.mozilla.org",
+                        "www.un.org",
                         "www.tesla.com"
                     ],
                     "privateKey": "$rePrivateKey",
