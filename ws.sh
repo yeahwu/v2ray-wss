@@ -85,7 +85,7 @@ EOF
 }
 
 client_v2ray(){
-    wslink=$(echo -n "{\"port\":${v2port},\"ps\":\"1024-ws\",\"id\":\"${v2uuid}\",\"aid\":0,\"v\":2,\"host\":\"$(getIP)\",\"type\":\"none\",\"path\":\"/${v2path}\",\"net\":\"ws\",\"method\":\"aes-128-gcm\"}" | base64 -w 0)
+    wslink=$(echo -n "{\"port\":${v2port},\"ps\":\"1024-ws\",\"id\":\"${v2uuid}\",\"aid\":0,\"v\":2,\"add\":\"$(getIP)\",\"type\":\"none\",\"path\":\"/${v2path}\",\"net\":\"ws\",\"method\":\"aes-128-gcm\"}" | base64 -w 0)
 
     echo
     echo "安装已经完成"
