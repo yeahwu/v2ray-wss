@@ -71,7 +71,7 @@ cat >/usr/local/etc/v2ray/client.json<<EOF
 {
 ===========配置参数=============
 协议：VMess
-地址：${getIP}
+地址：$(getIP)
 端口：${v2port}
 UUID：${v2uuid}
 加密方式：aes-128-gcm
@@ -85,14 +85,14 @@ EOF
 }
 
 client_v2ray(){
-    wslink=$(echo -n "{\"port\":${v2port},\"ps\":\"1024-ws\",\"id\":\"${v2uuid}\",\"aid\":0,\"v\":2,\"host\":\"${getIP}\",\"type\":\"none\",\"path\":\"/${v2path}\",\"net\":\"ws\",\"method\":\"aes-128-gcm\"}" | base64 -w 0)
+    wslink=$(echo -n "{\"port\":${v2port},\"ps\":\"1024-ws\",\"id\":\"${v2uuid}\",\"aid\":0,\"v\":2,\"host\":\"$(getIP)\",\"type\":\"none\",\"path\":\"/${v2path}\",\"net\":\"ws\",\"method\":\"aes-128-gcm\"}" | base64 -w 0)
 
     echo
     echo "安装已经完成"
     echo
     echo "===========v2ray配置参数============"
     echo "协议：VMess"
-    echo "地址：${getIP}"
+    echo "地址：$(getIP)"
     echo "端口：${v2port}"
     echo "UUID：${v2uuid}"
     echo "加密方式：aes-128-gcm"
