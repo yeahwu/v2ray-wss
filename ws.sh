@@ -39,8 +39,8 @@ cat >/usr/local/etc/v2ray/config.json<<EOF
 {
   "inbounds": [
     {
-      "port": 8080,
-      "protocol": "$v2port",
+      "port": $v2port,
+      "protocol": "vmess",
       "settings": {
         "clients": [
           {
