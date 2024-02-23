@@ -66,6 +66,7 @@ cat >/usr/local/etc/v2ray/config.json<<EOF
 EOF
 
     systemctl enable v2ray.service && systemctl restart v2ray.service
+    rm -f tcp-wss.sh ws.sh
 
 cat >/usr/local/etc/v2ray/client.json<<EOF
 {
@@ -85,7 +86,7 @@ EOF
 }
 
 client_v2ray(){
-    wslink=$(echo -n "{\"port\":${v2port},\"ps\":\"1024-ws\",\"id\":\"${v2uuid}\",\"aid\":0,\"v\":2,\"add\":\"$(getIP)\",\"type\":\"none\",\"path\":\"/${v2path}\",\"net\":\"ws\",\"method\":\"aes-128-gcm\"}" | base64 -w 0)
+    wslink=$(echo -n "{\"port\":${v2port},\"ps\":\"1024-ws\",\"id\":\"${v2uuid}\",\"aid\":0,\"v\":2,\"add\":\"$(getIP)\",\"type\":\"none\",\"path\":\"/${v2path}\",\"net\":\"ws\",\"method\":\"auto\"}" | base64 -w 0)
 
     echo
     echo "安装已经完成"
