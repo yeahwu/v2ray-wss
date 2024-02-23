@@ -31,10 +31,10 @@ install_precheck(){
     fi
     
     if [ -f "/usr/bin/apt-get" ]; then
-        apt-get update -y
+        apt-get update -y && apt-get upgrade -y
         apt-get install -y net-tools curl
     else
-        yum update -y
+        yum update -y && yum upgrade -y
         yum install -y epel-release
         yum install -y net-tools curl
     fi
@@ -169,12 +169,12 @@ EOF
 
 install_sslibev(){
     if [ -f "/usr/bin/apt-get" ];then
-        apt-get update -y
+        apt-get update -y && apt-get upgrade -y
         apt-get install -y --no-install-recommends \
             autoconf automake debhelper pkg-config asciidoc xmlto libpcre3-dev apg pwgen rng-tools \
             libev-dev libc-ares-dev dh-autoreconf libsodium-dev libmbedtls-dev git
     else
-        yum update -y
+        yum update -y && yum upgrade -y
         yum install epel-release -y
         yum install gcc gettext autoconf libtool automake make pcre-devel asciidoc xmlto c-ares-devel libev-devel libsodium-devel mbedtls-devel git -y  
     fi
@@ -215,6 +215,10 @@ EOF
 
 install_reality(){
     wget https://raw.githubusercontent.com/yeahwu/v2ray-wss/main/reality.sh && bash reality.sh
+}
+
+install_ws(){
+    wget https://raw.githubusercontent.com/yeahwu/v2ray-wss/main/ws.sh && bash ws.sh
 }
 
 client_v2ray(){
@@ -266,6 +270,7 @@ start_menu(){
     echo " 1. 安装 Shadowsocks-libev"
     echo " 2. 安装 v2ray+ws+tls"
     echo " 3. 安装 Reality"
+    echo " 4. 安装 v2ray+ws"
     echo " 0. 退出脚本"
     echo
     read -p "请输入数字:" num
@@ -283,6 +288,9 @@ start_menu(){
     ;;
     3)
     install_reality
+    ;;
+    4)
+    install_ws
     ;;
     0)
     exit 1
