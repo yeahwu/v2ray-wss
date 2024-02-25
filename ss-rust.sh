@@ -79,7 +79,7 @@ cat >/etc/shadowsocks/config.json<<EOF
     "server_port":$ssport,
     "password":"$sspasswd",
     "timeout":600,
-	"mode": "tcp_and_udp",
+    "mode": "tcp_and_udp",
     "method":"aes-128-gcm"
 }
 EOF
@@ -99,8 +99,7 @@ WantedBy=multi-user.target
 EOF
 
     systemctl daemon-reload && systemctl enable shadowsocks.service && systemctl restart shadowsocks.service
-    cd ..
-    rm -rf ss-rust.sh
+    rm ss-rust.sh
 
 }
 
