@@ -167,50 +167,8 @@ EOF
     clear
 }
 
-install_sslibev(){
-    if [ -f "/usr/bin/apt-get" ];then
-        apt-get update -y && apt-get upgrade -y
-        apt-get install -y --no-install-recommends \
-            autoconf automake debhelper pkg-config asciidoc xmlto libpcre3-dev apg pwgen rng-tools \
-            libev-dev libc-ares-dev dh-autoreconf libsodium-dev libmbedtls-dev git
-    else
-        yum update -y && yum upgrade -y
-        yum install epel-release -y
-        yum install gcc gettext autoconf libtool automake make pcre-devel asciidoc xmlto c-ares-devel libev-devel libsodium-devel mbedtls-devel git -y  
-    fi
-
-    git clone https://github.com/shadowsocks/shadowsocks-libev.git
-    cd shadowsocks-libev
-    git submodule update --init --recursive
-    ./autogen.sh && ./configure --prefix=/usr && make
-    make install
-    mkdir -p /etc/shadowsocks-libev
-
-cat >/etc/shadowsocks-libev/config.json<<EOF
-{
-    "server":["[::0]","0.0.0.0"],
-    "server_port":$ssport,
-    "password":"$v2uuid",
-    "timeout":600,
-    "method":"chacha20-ietf-poly1305"
-}
-EOF
-
-cat >/etc/systemd/system/shadowsocks.service<<EOF
-[Unit]
-Description=Shadowsocks Server
-After=network.target
-[Service]
-ExecStart=/usr/bin/ss-server -c /etc/shadowsocks-libev/config.json
-Restart=on-abort
-[Install]
-WantedBy=multi-user.target
-EOF
-
-    systemctl daemon-reload && systemctl enable shadowsocks.service && systemctl restart shadowsocks.service
-    cd ..
-    rm -rf shadowsocks-libev tcp-wss.sh
-    clear
+install_ssrust(){
+    wget https://raw.githubusercontent.com/yeahwu/v2ray-wss/main/ss-rust.sh && bash ss-rust.sh
 }
 
 install_reality(){
@@ -242,23 +200,6 @@ client_v2ray(){
     echo
 }
 
-client_sslibev(){
-    sslink=$(echo -n "chacha20-ietf-poly1305:${v2uuid}@$(getIP):${ssport}" | base64 -w 0)
-
-    echo
-    echo "安装已经完成"
-    echo
-    echo "===========Shadowsocks配置参数============"
-    echo "地址：$(getIP)"
-    echo "端口：${ssport}"
-    echo "密码：${v2uuid}"
-    echo "加密方式：chacha20-ietf-poly1305"
-    echo "传输协议：tcp"
-    echo "========================================="
-    echo "ss://${sslink}"
-    echo
-}
-
 start_menu(){
     clear
     echo " ================================================== "
@@ -267,7 +208,7 @@ start_menu(){
     echo " 系统：Ubuntu、Debian、CentOS                        "
     echo " ================================================== "
     echo
-    echo " 1. 安装 Shadowsocks-libev"
+    echo " 1. 安装 Shadowsocks-rust"
     echo " 2. 安装 v2ray+ws+tls"
     echo " 3. 安装 Reality"
     echo " 4. 安装 v2ray+ws"
@@ -276,8 +217,7 @@ start_menu(){
     read -p "请输入数字:" num
     case "$num" in
     1)
-    install_sslibev
-    client_sslibev
+    install_ssrust
     ;;
     2)
     install_precheck
