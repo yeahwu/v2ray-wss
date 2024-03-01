@@ -99,7 +99,7 @@ WantedBy=multi-user.target
 EOF
 
     systemctl daemon-reload && systemctl enable shadowsocks.service && systemctl restart shadowsocks.service
-    rm ss-rust.sh
+    rm -f tcp-wss.sh ss-rust.sh
 
 }
 
