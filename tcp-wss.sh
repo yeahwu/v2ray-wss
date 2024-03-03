@@ -204,7 +204,7 @@ start_menu(){
     clear
     echo " ================================================== "
     echo " 论坛：https://1024.day                              "
-    echo " 介绍：一键安装SS-libev，v2ray+ws+tls和Reality代理    "
+    echo " 介绍：一键安装SS-Rust，v2ray+ws+tls和Reality代理    "
     echo " 系统：Ubuntu、Debian、CentOS                        "
     echo " ================================================== "
     echo
