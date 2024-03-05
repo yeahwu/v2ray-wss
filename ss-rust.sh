@@ -75,11 +75,11 @@ config_SS(){
 
 cat >/etc/shadowsocks/config.json<<EOF
 {
-    "server": "::",
+    "server":"::",
     "server_port":$ssport,
     "password":"$sspasswd",
     "timeout":600,
-    "mode": "tcp_and_udp",
+    "mode":"tcp_and_udp",
     "method":"aes-128-gcm"
 }
 EOF
