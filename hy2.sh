@@ -59,7 +59,7 @@ quic:
   maxConnReceiveWindow: 67108864 
 EOF
 
-systemctl enable hysteria-server.service && systemctl start hysteria-server.service && systemctl status --no-pager hysteria-server.service
+systemctl enable hysteria-server.service && systemctl restart hysteria-server.service && systemctl status --no-pager hysteria-server.service
 
 }
 
