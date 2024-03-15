@@ -26,10 +26,10 @@ getIP(){
 
 install_xray(){ 
     if [ -f "/usr/bin/apt-get" ]; then
-        apt-get update -y
+        apt-get update -y && apt-get upgrade -y
         apt-get install -y gawk curl
     else
-        yum update -y
+        yum update -y && yum upgrade -y
         yum install -y epel-release
         yum install -y gawk curl
     fi
