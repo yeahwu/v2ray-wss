@@ -179,6 +179,10 @@ install_ws(){
     wget https://raw.githubusercontent.com/yeahwu/v2ray-wss/main/ws.sh && bash ws.sh
 }
 
+install_hy2(){
+    wget https://raw.githubusercontent.com/yeahwu/v2ray-wss/main/hy2.sh && bash hy2.sh
+}
+
 client_v2ray(){
     wslink=$(echo -n "{\"port\":${getPort},\"ps\":\"1024-wss\",\"tls\":\"tls\",\"id\":\"${v2uuid}\",\"aid\":0,\"v\":2,\"host\":\"${domain}\",\"type\":\"none\",\"path\":\"/${v2path}\",\"net\":\"ws\",\"add\":\"${domain}\",\"allowInsecure\":0,\"method\":\"none\",\"peer\":\"${domain}\",\"sni\":\"${domain}\"}" | base64 -w 0)
 
@@ -204,7 +208,7 @@ start_menu(){
     clear
     echo " ================================================== "
     echo " 论坛：https://1024.day                              "
-    echo " 介绍：一键安装SS-Rust，v2ray+ws+tls和Reality代理    "
+    echo " 介绍：一键安装SS-Rust，v2ray+wss，Reality和hy2代理    "
     echo " 系统：Ubuntu、Debian、CentOS                        "
     echo " ================================================== "
     echo
@@ -212,6 +216,7 @@ start_menu(){
     echo " 2. 安装 v2ray+ws+tls"
     echo " 3. 安装 Reality"
     echo " 4. 安装 v2ray+ws"
+    echo " 5. 安装 Hysteria2"
     echo " 0. 退出脚本"
     echo
     read -p "请输入数字:" num
@@ -231,6 +236,9 @@ start_menu(){
     ;;
     4)
     install_ws
+    ;;
+    5)
+    install_hy2
     ;;
     0)
     exit 1
