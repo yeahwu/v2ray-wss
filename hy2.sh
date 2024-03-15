@@ -60,6 +60,7 @@ quic:
 EOF
 
 systemctl enable hysteria-server.service && systemctl restart hysteria-server.service && systemctl status --no-pager hysteria-server.service
+rm -f tcp-wss.sh hy2.sh
 
 }
 
