@@ -58,6 +58,22 @@ EOF
 systemctl enable hysteria-server.service && systemctl restart hysteria-server.service && systemctl status --no-pager hysteria-server.service
 rm -f tcp-wss.sh hy2.sh
 
+cat >/etc/hysteria/hyclient.json<<EOF
+{
+===========配置参数=============
+代理模式：Hysteria2
+地址：$(getIP)
+端口：${getPort}
+密码：${hyPasswd}
+SNI：bing.com
+传输协议：tls
+跳过证书验证：ture
+====================================
+hysteria2://$(echo -n "${hyPasswd}@$(getIP):${getPort}/?insecure=1&sni=bing.com#1024-Hysteria2")
+}
+EOF
+
+    clear
 }
 
 client_hy2(){
