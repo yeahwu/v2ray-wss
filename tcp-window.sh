@@ -48,4 +48,6 @@ net.ipv4.tcp_notsent_lowat = 131072
 #net.ipv6.conf.lo.disable_ipv6 = 1
 EOF
 
+rm tcp-window.sh
+
 sleep 3 && reboot >/dev/null 2>&1
