@@ -1,4 +1,4 @@
-#!/bin/sh
+##!/bin/sh
 # forum: https://1024.day
 
 if [[ $EUID -ne 0 ]]; then
@@ -81,6 +81,15 @@ http {
     access_log off;
     error_log /dev/null;
 
+    server {
+        listen 80;
+        listen [::]:80;
+        server_name $domain;
+        location / {
+            return 301 https://\$server_name\$request_uri;
+        }
+    }
+    
     server {
         listen $getPort ssl http2;
         listen [::]:$getPort ssl http2;
