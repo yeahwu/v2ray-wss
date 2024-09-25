@@ -7,8 +7,6 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-timedatectl set-timezone Asia/Shanghai
-
 cat >/etc/security/limits.conf<<EOF
 * soft     nproc          655360
 * hard     nproc          655360
