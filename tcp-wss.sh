@@ -184,10 +184,6 @@ install_reality(){
     wget https://raw.githubusercontent.com/yeahwu/v2ray-wss/main/reality.sh && bash reality.sh
 }
 
-install_ws(){
-    wget https://raw.githubusercontent.com/yeahwu/v2ray-wss/main/ws.sh && bash ws.sh
-}
-
 install_hy2(){
     wget https://raw.githubusercontent.com/yeahwu/v2ray-wss/main/hy2.sh && bash hy2.sh
 }
@@ -217,15 +213,14 @@ start_menu(){
     clear
     echo " ================================================== "
     echo " 论坛：https://1024.day                              "
-    echo " 介绍：一键安装SS-Rust，v2ray+wss，Reality和hy2代理    "
+    echo " 介绍：一键安装SS-Rust，v2ray+wss，Reality或Hysteria2    "
     echo " 系统：Ubuntu、Debian、CentOS                        "
     echo " ================================================== "
     echo
     echo " 1. 安装 Shadowsocks-rust"
     echo " 2. 安装 v2ray+ws+tls"
     echo " 3. 安装 Reality"
-    echo " 4. 安装 v2ray+ws"
-    echo " 5. 安装 Hysteria2"
+    echo " 4. 安装 Hysteria2"
     echo " 0. 退出脚本"
     echo
     read -p "请输入数字:" num
@@ -244,9 +239,6 @@ start_menu(){
     install_reality
     ;;
     4)
-    install_ws
-    ;;
-    5)
     install_hy2
     ;;
     0)
