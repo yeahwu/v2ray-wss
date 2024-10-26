@@ -35,6 +35,7 @@ fs.file-max = 655360
 net.ipv4.tcp_congestion_control = bbr
 net.core.default_qdisc = fq
 net.ipv4.tcp_slow_start_after_idle = 0
+net.ipv4.tcp_mtu_probing = 1
 net.ipv4.tcp_rmem = 8192 262144 67108864
 net.ipv4.tcp_wmem = 4096 16384 67108864
 net.ipv4.udp_rmem_min = 8192
