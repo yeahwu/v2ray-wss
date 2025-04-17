@@ -217,7 +217,7 @@ start_menu(){
     echo " 系统：Ubuntu、Debian、CentOS                        "
     echo " ================================================== "
     echo
-    echo " 1. 安装 Shadowsocks-rust"
+    echo " 1. 安装 Shadowsocks-rust(用于落地)"
     echo " 2. 安装 v2ray+ws+tls"
     echo " 3. 安装 Reality"
     echo " 4. 安装 Hysteria2"
