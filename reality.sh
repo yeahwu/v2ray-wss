@@ -49,6 +49,7 @@ cat >/usr/local/etc/xray/config.json<<EOF
             "port": $getPort,
             "protocol": "dokodemo-door",
             "settings": {
+                "address": "127.0.0.1",
                 "port": 44315,
                 "network": "tcp"
             },
@@ -61,6 +62,7 @@ cat >/usr/local/etc/xray/config.json<<EOF
             }
         },
         {
+            "listen": "127.0.0.1",
             "port": 44315,
             "protocol": "vless",
             "settings": {
@@ -78,8 +80,7 @@ cat >/usr/local/etc/xray/config.json<<EOF
                 "realitySettings": {
                     "dest": "www.amazon.com:443",
                     "serverNames": [
-                        "www.amazon.com",
-                        "www.tesla.com"
+                        "www.amazon.com"
                     ],
                     "privateKey": "$rePrivateKey",
                     "shortIds": [
@@ -115,8 +116,7 @@ cat >/usr/local/etc/xray/config.json<<EOF
                     "dokodemo-in"
                 ],
                 "domain": [
-                    "www.amazon.com",
-                    "www.tesla.com"
+                    "www.amazon.com"
                 ],
                 "outboundTag": "direct"
             },
