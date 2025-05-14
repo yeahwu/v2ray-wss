@@ -45,7 +45,23 @@ cat >/usr/local/etc/xray/config.json<<EOF
 {
     "inbounds": [
         {
+            "tag": "dokodemo-in",
             "port": $getPort,
+            "protocol": "dokodemo-door",
+            "settings": {
+                "port": 44315,
+                "network": "tcp"
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                    "tls"
+                ],
+                "routeOnly": true
+            }
+        },
+        {
+            "port": 44315,
             "protocol": "vless",
             "settings": {
                 "clients": [
@@ -60,24 +76,25 @@ cat >/usr/local/etc/xray/config.json<<EOF
                 "network": "tcp",
                 "security": "reality",
                 "realitySettings": {
-                    "show": false,
                     "dest": "www.amazon.com:443",
-                    "xver": 0,
                     "serverNames": [
                         "www.amazon.com",
-                        "addons.mozilla.org",
-                        "www.un.org",
                         "www.tesla.com"
                     ],
                     "privateKey": "$rePrivateKey",
-                    "minClientVer": "",
-                    "maxClientVer": "",
-                    "maxTimeDiff": 0,
                     "shortIds": [
-                        "88",
-                        "123abc"
+                        "88"
                     ]
                 }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                    "http",
+                    "tls",
+                    "quic"
+                ],
+                "routeOnly": true
             }
         }
     ],
@@ -88,9 +105,29 @@ cat >/usr/local/etc/xray/config.json<<EOF
         },
         {
             "protocol": "blackhole",
-            "tag": "blocked"
+            "tag": "block"
         }
-    ]    
+    ],
+    "routing": {
+        "rules": [
+            {
+                "inboundTag": [
+                    "dokodemo-in"
+                ],
+                "domain": [
+                    "www.amazon.com",
+                    "www.tesla.com"
+                ],
+                "outboundTag": "direct"
+            },
+            {
+                "inboundTag": [
+                    "dokodemo-in"
+                ],
+                "outboundTag": "block"
+            }
+        ]
+    }
 }
 EOF
 
