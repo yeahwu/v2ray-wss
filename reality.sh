@@ -16,7 +16,9 @@ if [ -z $getPort ];then
     echo ""
 fi
 
-read -t 15 -p "回车或等待15秒为默认域名 www.amazon.com，或者自定义SNI请输入："  getSni
+echo
+
+read -t 30 -p "回车或等待30秒为默认域名 www.amazon.com，或者自定义SNI请输入："  getSni
 if [ -z $getSni ];then
     getSni=www.amazon.com
     echo ""
