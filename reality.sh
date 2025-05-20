@@ -13,7 +13,6 @@ v2uuid=$(cat /proc/sys/kernel/random/uuid)
 read -t 15 -p "回车或等待15秒为默认端口443，或者自定义端口请输入(1-65535)："  getPort
 if [ -z $getPort ];then
     getPort=443
-    echo ""
 fi
 
 echo
@@ -54,25 +53,7 @@ cat >/usr/local/etc/xray/config.json<<EOF
 {
     "inbounds": [
         {
-            "tag": "dokodemo-in",
             "port": $getPort,
-            "protocol": "dokodemo-door",
-            "settings": {
-                "address": "127.0.0.1",
-                "port": 44315,
-                "network": "tcp"
-            },
-            "sniffing": {
-                "enabled": true,
-                "destOverride": [
-                    "tls"
-                ],
-                "routeOnly": true
-            }
-        },
-        {
-            "listen": "127.0.0.1",
-            "port": 44315,
             "protocol": "vless",
             "settings": {
                 "clients": [
@@ -87,24 +68,20 @@ cat >/usr/local/etc/xray/config.json<<EOF
                 "network": "tcp",
                 "security": "reality",
                 "realitySettings": {
+                    "show": false,
                     "dest": "$getSni:443",
+                    "xver": 0,
                     "serverNames": [
                         "$getSni"
                     ],
                     "privateKey": "$rePrivateKey",
+                    "minClientVer": "",
+                    "maxClientVer": "",
+                    "maxTimeDiff": 0,
                     "shortIds": [
                         "88"
                     ]
                 }
-            },
-            "sniffing": {
-                "enabled": true,
-                "destOverride": [
-                    "http",
-                    "tls",
-                    "quic"
-                ],
-                "routeOnly": true
             }
         }
     ],
@@ -115,28 +92,9 @@ cat >/usr/local/etc/xray/config.json<<EOF
         },
         {
             "protocol": "blackhole",
-            "tag": "block"
+            "tag": "blocked"
         }
-    ],
-    "routing": {
-        "rules": [
-            {
-                "inboundTag": [
-                    "dokodemo-in"
-                ],
-                "domain": [
-                    "$getSni"
-                ],
-                "outboundTag": "direct"
-            },
-            {
-                "inboundTag": [
-                    "dokodemo-in"
-                ],
-                "outboundTag": "block"
-            }
-        ]
-    }
+    ]    
 }
 EOF
 
