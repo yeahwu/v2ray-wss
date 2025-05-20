@@ -13,6 +13,7 @@ v2uuid=$(cat /proc/sys/kernel/random/uuid)
 read -t 15 -p "回车或等待15秒为默认端口443，或者自定义端口请输入(1-65535)："  getPort
 if [ -z $getPort ];then
     getPort=443
+    echo ""
 fi
 
 echo
