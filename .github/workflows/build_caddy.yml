@@ -1,0 +1,45 @@
+name: Monthly Caddy Build and Release
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # 每月1号 00:00（UTC）触发
+  workflow_dispatch:     # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+
+    - name: Install xcaddy
+      run: go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+
+    - name: Build Caddy with plugins
+      run: |
+        DATE=$(date +'%Y-%m-%d')
+        VERSION="v-monthly"
+        xcaddy build \
+          --with github.com/caddyserver/forwardproxy
+        mkdir -p dist
+        tar -czvf dist/caddy-${VERSION}.tar.gz caddy
+        echo "RELEASE_TAG=${VERSION}" >> $GITHUB_ENV
+        echo "RELEASE_NAME=Monthly Build (${DATE})" >> $GITHUB_ENV
+
+    - name: Create or Update GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        name: ${{ env.RELEASE_NAME }}
+        files: dist/*.tar.gz
+        draft: false
+        prerelease: false
+        update_release: true  # ⭐️ 自动更新已有 Release（覆盖上传）
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
