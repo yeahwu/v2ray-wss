@@ -40,6 +40,6 @@ jobs:
         files: dist/*.tar.gz
         draft: false
         prerelease: false
-        update_release: true  # ⭐️ 自动更新已有 Release（覆盖上传）
+        update_release: true  # 自动更新已有 Release（覆盖上传）
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
