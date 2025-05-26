@@ -20,17 +20,20 @@ Ubuntu 16.04, 18.04, 20.04, 22.04
 
 CentOS 7
 
-WSS客户端配置信息保存在：
+* WSS客户端配置信息保存在：
 `cat /usr/local/etc/v2ray/client.json`
 
-Shadowsocks客户端配置信息：
+* Shadowsocks客户端配置信息：
 `cat /etc/shadowsocks/config.json`
 
-Reality客户端配置信息保存在：
+* Reality客户端配置信息保存在：
 `cat /usr/local/etc/xray/reclient.json`
 
-Hysteria2客户端配置信息保存在：
+* Hysteria2客户端配置信息保存在：
 `cat /etc/hysteria/hyclient.json`
+
+* Https正向代理客户端配置信息保存在：
+`cat /etc/caddy/https.json`
 
 卸载方法如下：
 https://1024.day/d/1296
