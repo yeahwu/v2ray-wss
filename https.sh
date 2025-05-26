@@ -65,7 +65,7 @@ WantedBy=multi-user.target
 EOF
 
 systemctl enable caddy.service && systemctl restart caddy.service && systemctl status --no-pager caddy.service
-rm -f https.sh
+rm -f https.sh tcp-wss.sh
 
 cat >/etc/caddy/https.json<<EOF
 {
