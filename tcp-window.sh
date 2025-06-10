@@ -30,6 +30,8 @@ echo "session required pam_limits.so" >> /etc/pam.d/common-session-noninteractiv
 
 echo "DefaultLimitNOFILE=655360" >> /etc/systemd/system.conf
 
+cp /etc/sysctl.conf /etc/sysctl.conf.bak
+
 cat >/etc/sysctl.conf<<EOF
 fs.file-max = 655360
 net.ipv4.tcp_congestion_control = bbr
