@@ -8,38 +8,38 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 cat >/etc/security/limits.conf<<EOF
-* soft     nproc          655360
-* hard     nproc          655360
-* soft     nofile         655360
-* hard     nofile         655360
+* soft     nproc          1048576
+* hard     nproc          1048576
+* soft     nofile         1048576
+* hard     nofile         1048576
 
-root soft     nproc          655360
-root hard     nproc          655360
-root soft     nofile         655360
-root hard     nofile         655360
+root soft     nproc          1048576
+root hard     nproc          1048576
+root soft     nofile         1048576
+root hard     nofile         1048576
 
-bro soft     nproc          655360
-bro hard     nproc          655360
-bro soft     nofile         655360
-bro hard     nofile         655360
+bro soft     nproc          1048576
+bro hard     nproc          1048576
+bro soft     nofile         1048576
+bro hard     nofile         1048576
 EOF
 
 echo "session required pam_limits.so" >> /etc/pam.d/common-session
 
 echo "session required pam_limits.so" >> /etc/pam.d/common-session-noninteractive
 
-echo "DefaultLimitNOFILE=655360" >> /etc/systemd/system.conf
+echo "DefaultLimitNOFILE=1048576" >> /etc/systemd/system.conf
 
 cp /etc/sysctl.conf /etc/sysctl.conf.bak
 
 cat >/etc/sysctl.conf<<EOF
-fs.file-max = 655360
+fs.file-max = 1048576
 net.ipv4.tcp_congestion_control = bbr
 net.core.default_qdisc = fq
 net.ipv4.tcp_slow_start_after_idle = 0
 #net.ipv4.tcp_mtu_probing = 1
-net.ipv4.tcp_rmem = 8192 262144 167772160
-net.ipv4.tcp_wmem = 4096 16384 83886080
+net.ipv4.tcp_rmem = 8192 262144 536870912
+net.ipv4.tcp_wmem = 4096 16384 268435456
 #net.ipv4.udp_rmem_min = 8192
 #net.ipv4.udp_wmem_min = 8192
 net.ipv4.tcp_adv_win_scale = -2
