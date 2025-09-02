@@ -45,11 +45,39 @@ install_xray(){
     bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
 }
 
-reconfig(){
-    reX25519Key=$(/usr/local/bin/xray x25519)
-    rePrivateKey=$(echo "${reX25519Key}" | head -1 | awk '{print $3}')
-    rePublicKey=$(echo "${reX25519Key}" | tail -n 1 | awk '{print $3}')
+get_keys(){
+    local raw tries=0
+    while (( tries < 5 )); do
+        raw=$(/usr/local/bin/xray x25519 2>/dev/null || true)
+        # 私钥：匹配 Private key: / PrivateKey:
+        rePrivateKey=$(printf '%s\n' "$raw" | awk -F ': *' '/^[Pp]rivate[[:space:]]*[Kk]ey/{print $2; exit}')
+        # 公钥优先：Public key / PublicKey
+        rePublicKey=$(printf '%s\n' "$raw" | awk -F ': *' '/^[Pp]ublic[[:space:]]*[Kk]ey/{print $2; exit}')
+        # 若无 Public，则尝试把 Password 当作“公钥”使用（适配你看到的新输出）
+        if [[ -z "${rePublicKey:-}" ]]; then
+            rePublicKey=$(printf '%s\n' "$raw" | awk -F ': *' '/^[Pp]assword/{print $2; exit}')
+        fi
+        # 记录原始输出供调试
+        if [[ -n "${rePrivateKey:-}" && -n "${rePublicKey:-}" ]]; then
+            break
+        fi
+        ((tries++))
+        sleep 1
+    done
+    if [[ -z "${rePrivateKey:-}" || -z "${rePublicKey:-}" ]]; then
+        red "生成（或解析）X25519 密钥失败。原始输出："
+        echo "--------------------------------"
+        echo "$raw"
+        echo "--------------------------------"
+        red "请手动执行：/usr/local/bin/xray x25519 复制输出，把第一行设为 privateKey，第二行(或 Password)当作 pbk。"
+        exit 1
+    fi
+    # 去掉可能的空白
+    rePrivateKey=$(echo -n "$rePrivateKey" | tr -d ' \r\n')
+    rePublicKey=$(echo -n "$rePublicKey" | tr -d ' \r\n')
+}
 
+reconfig(){
 cat >/usr/local/etc/xray/config.json<<EOF
 {
     "inbounds": [
@@ -145,5 +173,6 @@ client_re(){
 }
 
 install_xray
+get_keys
 reconfig
 client_re
