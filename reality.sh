@@ -162,7 +162,6 @@ fi
 
 getIP(){
     local serverIP=
-    log "获取服务器IP地址..." >&2
     
     # Try multiple methods to get IP
     serverIP=$(curl -s -4 --connect-timeout 10 http://www.cloudflare.com/cdn-cgi/trace | grep "ip" | awk -F "[=]" '{print $2}')
