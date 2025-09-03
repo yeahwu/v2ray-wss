@@ -146,16 +146,16 @@ fi
 # Generate UUID
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 
-read -t 15 -p "回车或等待15秒为默认端口443，或者自定义端口请输入(1-65535)："  getPort
-if [ -z $getPort ];then
+read -r -t 15 -p "回车或等待15秒为默认端口443，或者自定义端口请输入(1-65535)："  getPort
+if [ -z "$getPort" ];then
     getPort=443
     echo ""
 fi
 
 echo
 
-read -t 30 -p "回车或等待30秒为默认域名 www.amazon.com，或者自定义SNI请输入："  getSni
-if [ -z $getSni ];then
+read -r -t 30 -p "回车或等待30秒为默认域名 www.amazon.com，或者自定义SNI请输入："  getSni
+if [ -z "$getSni" ];then
     getSni=www.amazon.com
     echo ""
 fi
@@ -193,13 +193,13 @@ install_xray(){
     
     # Update package lists
     log "更新软件包列表..."
-    if ! eval $PKG_UPDATE; then
+    if ! eval "$PKG_UPDATE"; then
         error_exit "更新软件包列表失败"
     fi
     
     # Upgrade system (optional, with error handling)
     log "升级系统软件包..."
-    eval $PKG_UPGRADE || log "系统升级过程中出现警告，继续安装..."
+    eval "$PKG_UPGRADE" || log "系统升级过程中出现警告，继续安装..."
     
     # Install basic dependencies with distribution-specific package names
     log "安装基础依赖包..."
