@@ -1,6 +1,5 @@
 #!/bin/bash
 # forum: https://1024.day
-# Improved Reality script with cross-platform compatibility
 
 if [[ $EUID -ne 0 ]]; then
     clear
@@ -59,7 +58,6 @@ detect_distribution() {
         OS_ID="unknown"
         OS_VERSION="unknown"
     fi
-    log "检测到系统: $OS_ID $OS_VERSION"
 }
 
 # Check network connectivity
@@ -110,30 +108,9 @@ detect_package_manager() {
     log "检测到包管理器: $PKG_MANAGER"
 }
 
-# Check service manager
-check_service_manager() {
-    if command_exists systemctl; then
-        SERVICE_MANAGER="systemctl"
-        SERVICE_ENABLE="systemctl enable"
-        SERVICE_START="systemctl start"
-        SERVICE_RESTART="systemctl restart"
-        SERVICE_STATUS="systemctl status"
-    elif command_exists service; then
-        SERVICE_MANAGER="service"
-        SERVICE_ENABLE="chkconfig --add"
-        SERVICE_START="service"
-        SERVICE_RESTART="service"
-        SERVICE_STATUS="service"
-    else
-        error_exit "不支持的服务管理器"
-    fi
-    log "检测到服务管理器: $SERVICE_MANAGER"
-}
-
 # Initialize distribution detection and package manager
 detect_distribution
 detect_package_manager
-check_service_manager
 check_network
 
 # Set timezone with error handling
@@ -270,42 +247,24 @@ install_xray(){
 }
 
 get_keys(){
-    log "生成Reality密钥对..."
     local raw tries=0
-    
-    # Verify xray is available
-    if [[ ! -f "/usr/local/bin/xray" ]]; then
-        error_exit "Xray未正确安装，无法生成密钥"
-    fi
-    
     while (( tries < 5 )); do
         raw=$(/usr/local/bin/xray x25519 2>/dev/null || true)
-        
-        if [[ -z "$raw" ]]; then
-            ((tries++))
-            log "密钥生成失败，重试 $tries/5..."
-            sleep 2
-            continue
-        fi
-        
         # 私钥：匹配 Private key: / PrivateKey:
         rePrivateKey=$(printf '%s\n' "$raw" | awk -F ': *' '/^[Pp]rivate[[:space:]]*[Kk]ey/{print $2; exit}')
         # 公钥优先：Public key / PublicKey
         rePublicKey=$(printf '%s\n' "$raw" | awk -F ': *' '/^[Pp]ublic[[:space:]]*[Kk]ey/{print $2; exit}')
-        # 若无 Public，则尝试把 Password 当作"公钥"使用（适配你看到的新输出）
+        # 若无 Public，则尝试把 Password 当作“公钥”使用（适配你看到的新输出）
         if [[ -z "${rePublicKey:-}" ]]; then
             rePublicKey=$(printf '%s\n' "$raw" | awk -F ': *' '/^[Pp]assword/{print $2; exit}')
         fi
-        
         # 记录原始输出供调试
         if [[ -n "${rePrivateKey:-}" && -n "${rePublicKey:-}" ]]; then
             break
         fi
         ((tries++))
-        log "密钥解析失败，重试 $tries/5..."
         sleep 1
     done
-    
     if [[ -z "${rePrivateKey:-}" || -z "${rePublicKey:-}" ]]; then
         red "生成（或解析）X25519 密钥失败。原始输出："
         echo "--------------------------------"
@@ -314,28 +273,12 @@ get_keys(){
         red "请手动执行：/usr/local/bin/xray x25519 复制输出，把第一行设为 privateKey，第二行(或 Password)当作 pbk。"
         exit 1
     fi
-    
     # 去掉可能的空白
     rePrivateKey=$(echo -n "$rePrivateKey" | tr -d ' \r\n')
     rePublicKey=$(echo -n "$rePublicKey" | tr -d ' \r\n')
-    
-    # Validate key format (basic check)
-    if [[ ${#rePrivateKey} -lt 40 || ${#rePublicKey} -lt 40 ]]; then
-        red "生成的密钥格式不正确，请检查Xray版本"
-        exit 1
-    fi
-    
-    green "密钥生成成功"
-    log "Private Key: ${rePrivateKey:0:10}..."
-    log "Public Key: ${rePublicKey:0:10}..."
 }
 
 reconfig(){
-    log "配置Xray服务..."
-    
-    # Ensure config directory exists
-    mkdir -p /usr/local/etc/xray
-    
 cat >/usr/local/etc/xray/config.json<<EOF
 {
     "inbounds": [
@@ -385,32 +328,7 @@ cat >/usr/local/etc/xray/config.json<<EOF
 }
 EOF
 
-    # Start and enable Xray service with proper error handling
-    log "启动Xray服务..."
-    if [[ "$SERVICE_MANAGER" == "systemctl" ]]; then
-        if ! systemctl enable xray.service; then
-            yellow "启用Xray服务失败，尝试继续..."
-        fi
-        if ! systemctl restart xray.service; then
-            error_exit "启动Xray服务失败"
-        fi
-        # Check if service is running
-        sleep 2
-        if ! systemctl is-active --quiet xray.service; then
-            red "Xray服务未正常启动，检查配置..."
-            systemctl status xray.service
-            error_exit "Xray服务启动失败"
-        fi
-    else
-        # Fallback for non-systemd systems
-        if ! service xray start; then
-            error_exit "启动Xray服务失败"
-        fi
-    fi
-    
-    green "Xray服务启动成功"
-    
-    # Clean up installation files
+    systemctl enable xray.service && systemctl restart xray.service
     rm -f tcp-wss.sh install-release.sh reality.sh
 
 cat >/usr/local/etc/xray/reclient.json<<EOF
@@ -437,9 +355,9 @@ EOF
 
 client_re(){
     echo
-    green "安装已经完成"
+    echo "安装已经完成"
     echo
-    green "===========reality配置参数============"
+    echo "===========reality配置参数============"
     echo "代理模式：vless"
     echo "地址：$(getIP)"
     echo "端口：${getPort}"
@@ -450,16 +368,12 @@ client_re(){
     echo "底层传输：reality"
     echo "SNI: ${getSni}"
     echo "shortIds: 88"
-    green "===================================="
+    echo "===================================="
     echo "vless://${v2uuid}@$(getIP):${getPort}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${getSni}&fp=chrome&pbk=${rePublicKey}&sid=88&type=tcp&headerType=none#1024-reality"
     echo
-    log "配置信息已保存到: /usr/local/etc/xray/reclient.json"
 }
 
-# Main execution
-log "开始Reality安装和配置..."
 install_xray
 get_keys
 reconfig
 client_re
-green "Reality安装完成！"
