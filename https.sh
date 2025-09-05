@@ -1,5 +1,6 @@
 #!/bin/sh
-# forum: https://1024.day
+# HTTPS Poxy Installation Script
+# Author: https://1024.day
 
 if [[ $EUID -ne 0 ]]; then
     clear
@@ -7,7 +8,6 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-timedatectl set-timezone Asia/Shanghai
 Passwd=$(cat /dev/urandom | head -1 | md5sum | head -c 12)
 
 wget https://github.com/yeahwu/v2ray-wss/releases/download/v-monthly/caddy-v-monthly.tar.gz -O - | tar -xz -C /usr/local/
