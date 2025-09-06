@@ -139,29 +139,6 @@ detect_distribution() {
     log_info "检测到系统: $OS_ID $OS_VERSION"
 }
 
-# 检查网络连接
-check_network() {
-    log_info "检查网络连接..."
-    local test_urls=(
-        "http://www.cloudflare.com/cdn-cgi/trace"
-        "https://www.google.com"
-        "https://github.com"
-    )
-    
-    local connected=false
-    for url in "${test_urls[@]}"; do
-        if curl -s --connect-timeout 10 --max-time 15 "$url" >/dev/null 2>&1; then
-            connected=true
-            break
-        fi
-    done
-    
-    if [[ "$connected" != "true" ]]; then
-        exit_with_error "网络连接失败，请检查网络设置"
-    fi
-    print_green "网络连接正常"
-}
-
 # 增强包管理器检测
 detect_package_manager() {
     if command_exists apt-get; then
@@ -769,7 +746,6 @@ main() {
     detect_distribution
     detect_package_manager
     check_service_manager
-    check_network
     
     # 获取用户输入
     get_user_input
