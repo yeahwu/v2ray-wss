@@ -144,7 +144,6 @@ detect_package_manager() {
     if command_exists apt-get; then
         PKG_MANAGER="apt"
         PKG_UPDATE="apt-get update -y"
-        PKG_UPGRADE="apt-get upgrade -y"
         PKG_INSTALL="apt-get install -y"
         # 检查dpkg是否被锁
         while fuser /var/lib/dpkg/lock >/dev/null 2>&1 || fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || fuser /var/cache/apt/archives/lock >/dev/null 2>&1; do
@@ -154,26 +153,22 @@ detect_package_manager() {
     elif command_exists yum; then
         PKG_MANAGER="yum"
         PKG_UPDATE="yum makecache"
-        PKG_UPGRADE="yum update -y"
         PKG_INSTALL="yum install -y"
         # 安装EPEL仓库
         yum install -y epel-release 2>/dev/null || true
     elif command_exists dnf; then
         PKG_MANAGER="dnf"
         PKG_UPDATE="dnf makecache"
-        PKG_UPGRADE="dnf upgrade -y"
         PKG_INSTALL="dnf install -y"
         # 安装EPEL仓库
         dnf install -y epel-release 2>/dev/null || true
     elif command_exists zypper; then
         PKG_MANAGER="zypper"
         PKG_UPDATE="zypper ref"
-        PKG_UPGRADE="zypper up -y"
         PKG_INSTALL="zypper in -y"
     elif command_exists pacman; then
         PKG_MANAGER="pacman"
         PKG_UPDATE="pacman -Sy"
-        PKG_UPGRADE="pacman -Syu --noconfirm"
         PKG_INSTALL="pacman -S --noconfirm"
     else
         exit_with_error "不支持的包管理器，请手动安装依赖包"
