@@ -1,6 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Shadowsocks Rust Installation Script
 # Author: https://1024.day
+
+set -Eeuo pipefail
+IFS=$'\n\t'
 
 # 颜色定义
 RED='\033[0;31m'
@@ -124,36 +127,45 @@ detect_architecture() {
 install_shadowsocks() {
     echo -e "${CYAN}下载Shadowsocks Rust...${PLAIN}"
     
-    # 获取最新版本
-    LATEST_VERSION=$(wget -qO- https://api.github.com/repos/shadowsocks/shadowsocks-rust/releases | 
-                    jq -r '[.[] | select(.prerelease == false) | select(.draft == false) | .tag_name] | .[0]')
-    
-    if [[ -z "$LATEST_VERSION" ]]; then
-        echo -e "${RED}无法获取最新版本信息，请检查网络连接或者GitHub API限制${PLAIN}"
-        exit 1
+    # 获取版本：优先使用环境变量 SS_VERSION，否则查询最新版本
+    VERSION="${SS_VERSION:-}"
+    if [[ -z "$VERSION" ]]; then
+        LATEST_VERSION=$(wget -qO- https://api.github.com/repos/shadowsocks/shadowsocks-rust/releases | \
+                        jq -r '[.[] | select(.prerelease == false) | select(.draft == false) | .tag_name] | .[0]')
+        if [[ -z "$LATEST_VERSION" ]]; then
+            echo -e "${RED}无法获取最新版本信息，请检查网络连接或者GitHub API限制${PLAIN}"
+            exit 1
+        fi
+        VERSION="$LATEST_VERSION"
     fi
     
-    echo -e "${GREEN}最新版本: $LATEST_VERSION${PLAIN}"
+    echo -e "${GREEN}目标版本: $VERSION${PLAIN}"
     
     # 下载文件
-    DOWNLOAD_URL="https://github.com/shadowsocks/shadowsocks-rust/releases/download/${LATEST_VERSION}/shadowsocks-${LATEST_VERSION}.${ARCH}-unknown-linux-gnu.tar.xz"
+    DOWNLOAD_URL="https://github.com/shadowsocks/shadowsocks-rust/releases/download/${VERSION}/shadowsocks-${VERSION}.${ARCH}-unknown-linux-gnu.tar.xz"
     echo -e "${CYAN}正在从 $DOWNLOAD_URL 下载...${PLAIN}"
     
+    FILE_NAME="shadowsocks-${VERSION}.${ARCH}-unknown-linux-gnu.tar.xz"
     wget --no-check-certificate -q --show-progress -N "$DOWNLOAD_URL"
     
-    if [[ $? -ne 0 || ! -e "shadowsocks-${LATEST_VERSION}.${ARCH}-unknown-linux-gnu.tar.xz" ]]; then
+    if [[ $? -ne 0 || ! -e "$FILE_NAME" ]]; then
         echo -e "${RED}下载失败！尝试备用方法...${PLAIN}"
-        curl -L --progress-bar -o "shadowsocks-${LATEST_VERSION}.${ARCH}-unknown-linux-gnu.tar.xz" "$DOWNLOAD_URL"
+        curl -L --progress-bar -o "$FILE_NAME" "$DOWNLOAD_URL"
         
-        if [[ $? -ne 0 || ! -e "shadowsocks-${LATEST_VERSION}.${ARCH}-unknown-linux-gnu.tar.xz" ]]; then
+        if [[ $? -ne 0 || ! -e "$FILE_NAME" ]]; then
             echo -e "${RED}Shadowsocks Rust 下载失败！请检查网络连接或手动下载${PLAIN}"
             exit 1
         fi
     fi
     
+    # 可选校验：如果设置了 SS_SHA256 则进行校验
+    if [[ -n "${SS_SHA256:-}" ]]; then
+        echo "${SS_SHA256}  ${FILE_NAME}" | sha256sum -c -
+    fi
+    
     # 解压文件
     echo -e "${CYAN}解压文件...${PLAIN}"
-    tar -xf "shadowsocks-${LATEST_VERSION}.${ARCH}-unknown-linux-gnu.tar.xz"
+    tar -xf "$FILE_NAME"
     
     if [[ ! -e "ssserver" ]]; then
         echo -e "${RED}解压失败！${PLAIN}"
@@ -165,7 +177,7 @@ install_shadowsocks() {
     mv -f ssserver /usr/local/bin/
     
     # 清理其他文件
-    rm -f "shadowsocks-${LATEST_VERSION}.${ARCH}-unknown-linux-gnu.tar.xz"
+    rm -f "$FILE_NAME"
     rm -f sslocal ssmanager ssservice ssurl 2>/dev/null
     
     echo -e "${GREEN}Shadowsocks Rust 安装完成！${PLAIN}"
@@ -211,8 +223,7 @@ EOF
     systemctl enable shadowsocks.service
     systemctl restart shadowsocks.service
     
-    # 清理临时文件
-    rm -f tcp-wss.sh ss-rust.sh 2>/dev/null
+    # 保留脚本以便排查问题与复用，不再自删除
     
     echo -e "${GREEN}Shadowsocks 配置完成！${PLAIN}"
 }

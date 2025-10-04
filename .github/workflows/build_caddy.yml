@@ -29,6 +29,7 @@ jobs:
           --with github.com/caddyserver/forwardproxy
         mkdir -p dist
         tar -czvf dist/caddy-${VERSION}.tar.gz caddy
+        (cd dist && sha256sum caddy-${VERSION}.tar.gz > caddy-${VERSION}.tar.gz.sha256)
         echo "RELEASE_TAG=${VERSION}" >> $GITHUB_ENV
         echo "RELEASE_NAME=Monthly Build (${DATE})" >> $GITHUB_ENV
 
@@ -37,7 +38,9 @@ jobs:
       with:
         tag_name: ${{ env.RELEASE_TAG }}
         name: ${{ env.RELEASE_NAME }}
-        files: dist/*.tar.gz
+        files: |
+          dist/*.tar.gz
+          dist/*.sha256
         draft: false
         prerelease: false
         update_release: true  # 自动更新已有 Release（覆盖上传）
