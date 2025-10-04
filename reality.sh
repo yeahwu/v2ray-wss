@@ -1,5 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # forum: https://1024.day
+
+set -Eeuo pipefail
+IFS=$'\n\t'
 
 # 确保以root用户运行
 if [[ $EUID -ne 0 ]]; then
@@ -439,14 +442,8 @@ generate_keys() {
     
     # 解析私钥
     RE_PRIVATE_KEY=$(echo "$raw" | grep -iE "(private|privatekey)" | awk -F ':' '{print $2}' | tr -d ' \r\n\t' || true)
-    
-    # 解析公钥，优先级：Password优先，然后Public
-    RE_PUBLIC_KEY=$(echo "$raw" | grep -iE "password" | awk -F ':' '{print $2}' | tr -d ' \r\n\t' || true)
-    
-    # 如果没有Password字段，尝试Public字段
-    if [[ -z "$RE_PUBLIC_KEY" ]]; then
-        RE_PUBLIC_KEY=$(echo "$raw" | grep -iE "(public|publickey)" | awk -F ':' '{print $2}' | tr -d ' \r\n\t' || true)
-    fi
+    # 解析公钥，仅使用 Public/PublicKey 字段
+    RE_PUBLIC_KEY=$(echo "$raw" | grep -iE "(public|publickey)" | awk -F ':' '{print $2}' | tr -d ' \r\n\t' || true)
     
     # 验证提取的密钥
     if [[ -z "$RE_PRIVATE_KEY" || -z "$RE_PUBLIC_KEY" ]]; then
@@ -472,7 +469,18 @@ generate_keys() {
     
     print_green "密钥生成成功"
     log_info "私钥: ${RE_PRIVATE_KEY:0:10}..."
-    log_info "公钥 (来源: $(echo "$raw" | grep -q "Password" && echo "Password字段" || echo "Public字段")): ${RE_PUBLIC_KEY:0:10}..."
+    log_info "公钥: ${RE_PUBLIC_KEY:0:10}..."
+}
+
+# 生成 shortId（1-8 字节十六进制，默认 2 字节）
+generate_short_id() {
+    local bytes=${1:-2}
+    bytes=$(( bytes < 1 ? 1 : (bytes > 8 ? 8 : bytes) ))
+    local sid=""
+    for ((i=0; i<bytes; i++)); do
+        sid+=$(printf "%02x" $((RANDOM%256)))
+    done
+    echo "$sid"
 }
 
 # 配置Xray
@@ -530,7 +538,7 @@ cat > "$temp_config" <<EOF
                     "maxClientVer": "",
                     "maxTimeDiff": 0,
                     "shortIds": [
-                        "88"
+                        "$SHORT_ID"
                     ]
                 }
             }
@@ -614,7 +622,7 @@ EOF
     
     # 清理安装文件
     log_info "清理安装文件..."
-    rm -f tcp-wss.sh install-release.sh reality.sh
+    # keep scripts for troubleshooting; do not self-delete
     
     clear
 }
@@ -641,9 +649,9 @@ generate_client_config() {
     "公钥": "$RE_PUBLIC_KEY",
     "底层传输": "reality",
     "SNI": "$SERVER_SNI",
-    "shortIds": "88"
+    "shortIds": "$SHORT_ID"
 },
-"连接链接": "vless://$UUID@$SERVER_IP:$PORT_NUMBER?encryption=none&flow=xtls-rprx-vision&security=reality&sni=$SERVER_SNI&fp=chrome&pbk=$RE_PUBLIC_KEY&sid=88&type=tcp&headerType=none#1024-reality"
+"连接链接": "vless://$UUID@$SERVER_IP:$PORT_NUMBER?encryption=none&flow=xtls-rprx-vision&security=reality&sni=$SERVER_SNI&fp=chrome&pbk=$RE_PUBLIC_KEY&sid=$SHORT_ID&type=tcp&headerType=none#1024-reality"
 }
 EOF
     
@@ -677,11 +685,11 @@ display_client_config() {
     echo "Public key：$RE_PUBLIC_KEY"
     echo "底层传输：reality"
     echo "SNI：$SERVER_SNI"
-    echo "shortIds：88"
+    echo "shortIds：$SHORT_ID"
     display_green "========================================"
     echo
     display_green "客户端连接链接："
-    echo "vless://$UUID@$SERVER_IP:$PORT_NUMBER?encryption=none&flow=xtls-rprx-vision&security=reality&sni=$SERVER_SNI&fp=chrome&pbk=$RE_PUBLIC_KEY&sid=88&type=tcp&headerType=none#1024-reality"
+    echo "vless://$UUID@$SERVER_IP:$PORT_NUMBER?encryption=none&flow=xtls-rprx-vision&security=reality&sni=$SERVER_SNI&fp=chrome&pbk=$RE_PUBLIC_KEY&sid=$SHORT_ID&type=tcp&headerType=none#1024-reality"
     echo
     display_green "配置信息已保存到: /usr/local/etc/xray/reclient.json"
     if [[ -n "$LOG_FILE" ]]; then
@@ -752,13 +760,19 @@ main() {
     
     # 安装Xray
     install_xray
-    
+
     # 生成密钥
     generate_keys
-    
+
+    # 生成shortId（默认2字节十六进制，例如 "88a1"）
+    SHORT_ID=$(generate_short_id 2)
+
     # 配置并启动服务
     configure_xray
-    
+
+    # Open firewall if requested
+    open_firewall_tcp "$PORT_NUMBER"
+
     # 显示配置 - 使用无日志输出版本
     display_client_config
     
@@ -771,3 +785,16 @@ main() {
 
 # 执行主函数
 main "$@"
+# Optional firewall opening when FIREWALL_AUTO=1
+open_firewall_tcp() {
+    local port="$1"
+    [[ "${FIREWALL_AUTO:-0}" != "1" ]] && return 0
+    if command -v ufw >/dev/null 2>&1; then
+        if ufw status | grep -qi "Status: active"; then
+            ufw allow "${port}/tcp" || true
+        fi
+    elif command -v firewall-cmd >/dev/null 2>&1 && systemctl is-active --quiet firewalld; then
+        firewall-cmd --add-port="${port}/tcp" --permanent || true
+        firewall-cmd --reload || true
+    fi
+}

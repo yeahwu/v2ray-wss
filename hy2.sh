@@ -1,6 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Hysteria2 Installation Script
 # Author: https://1024.day
+
+set -Eeuo pipefail
+IFS=$'\n\t'
 
 GREEN="\033[32m"
 RED="\033[31m"
@@ -145,13 +148,20 @@ install_hysteria2() {
     fi
     echo "创建配置目录..."
     mkdir -p /etc/hysteria/
-    echo "生成SSL证书..."
-    if ! openssl req -x509 -nodes -newkey ec:<(openssl ecparam -name prime256v1) \
-        -keyout /etc/hysteria/server.key \
-        -out /etc/hysteria/server.crt \
-        -subj "/CN=bing.com" -days 36500; then
-        echo "错误: SSL证书生成失败"
-        exit 1
+    echo "生成或使用现有SSL证书..."
+    REAL_CERT_USED=0
+    if [[ -n "${HY2_CERT:-}" && -n "${HY2_KEY:-}" && -f "${HY2_CERT}" && -f "${HY2_KEY}" ]]; then
+        cp -f "${HY2_CERT}" /etc/hysteria/server.crt
+        cp -f "${HY2_KEY}" /etc/hysteria/server.key
+        REAL_CERT_USED=1
+    else
+        if ! openssl req -x509 -nodes -newkey ec:<(openssl ecparam -name prime256v1) \
+            -keyout /etc/hysteria/server.key \
+            -out /etc/hysteria/server.crt \
+            -subj "/CN=${HY2_SNI:-bing.com}" -days 36500; then
+            echo "错误: SSL证书生成失败"
+            exit 1
+        fi
     fi
     if id hysteria &> /dev/null; then
         chown hysteria:hysteria /etc/hysteria/server.key /etc/hysteria/server.crt
@@ -190,13 +200,21 @@ EOF
     else
         echo "请手动启动 Hysteria2 服务"
     fi
+    open_firewall_udp "$SERVER_PORT"
+    CLIENT_SNI="${HY2_SNI:-bing.com}"
+    if [[ "$REAL_CERT_USED" -eq 1 ]]; then
+        CLIENT_INSECURE=false
+    else
+        CLIENT_INSECURE=true
+    fi
+
     cat > /etc/hysteria/hyclient.json << EOF
 {
 "server": "$(get_server_ip):${SERVER_PORT}",
 "auth": "${HYSTERIA_PASSWORD}",
 "tls": {
-  "sni": "bing.com",
-  "insecure": true
+  "sni": "${CLIENT_SNI}",
+  "insecure": ${CLIENT_INSECURE}
 },
 "quic": {
   "initStreamReceiveWindow": 26843545,
@@ -206,7 +224,7 @@ EOF
 }
 }
 EOF
-    rm -f tcp-wss.sh hy2.sh
+    # keep scripts for troubleshooting; do not self-delete
     clear
 }
 
@@ -233,7 +251,12 @@ check_service_status() {
 show_client_config() {
     local server_ip
     server_ip=$(get_server_ip)
-    local connection_link="${HYSTERIA_PASSWORD}@${server_ip}:${SERVER_PORT}/?insecure=1&sni=bing.com#1024-Hysteria2"
+    local sni_val="${HY2_SNI:-bing.com}"
+    local insecure_flag=1
+    if [[ "${REAL_CERT_USED:-0}" -eq 1 ]]; then
+        insecure_flag=0
+    fi
+    local connection_link="${HYSTERIA_PASSWORD}@${server_ip}:${SERVER_PORT}/?insecure=${insecure_flag}&sni=${sni_val}#1024-Hysteria2"
 
     echo
     echo -e "${GREEN}===== Hysteria2 安装完成 =====${RESET}"
@@ -242,9 +265,9 @@ show_client_config() {
     echo -e "服务器地址: ${YELLOW}${server_ip}${RESET}"
     echo -e "端口: ${YELLOW}${SERVER_PORT}${RESET}"
     echo -e "密码: ${YELLOW}${HYSTERIA_PASSWORD}${RESET}"
-    echo -e "SNI: ${YELLOW}bing.com${RESET}"
+    echo -e "SNI: ${YELLOW}${sni_val}${RESET}"
     echo -e "传输协议: ${YELLOW}QUIC over TLS${RESET}"
-    echo -e "跳过证书验证: ${YELLOW}true${RESET}"
+    echo -e "跳过证书验证: ${YELLOW}$([[ $insecure_flag -eq 1 ]] && echo true || echo false)${RESET}"
     echo -e "${CYAN}==================================${RESET}"
     echo
     echo -e "${CYAN}连接链接:${RESET}"
@@ -277,3 +300,16 @@ main() {
 
 # 执行主函数
 main
+# Optional firewall opening when FIREWALL_AUTO=1
+open_firewall_udp() {
+    local port="$1"
+    [[ "${FIREWALL_AUTO:-0}" != "1" ]] && return 0
+    if command -v ufw >/dev/null 2>&1; then
+        if ufw status | grep -qi "Status: active"; then
+            ufw allow "${port}/udp" || true
+        fi
+    elif command -v firewall-cmd >/dev/null 2>&1 && systemctl is-active --quiet firewalld; then
+        firewall-cmd --add-port="${port}/udp" --permanent || true
+        firewall-cmd --reload || true
+    fi
+}

@@ -1,13 +1,19 @@
-##!/bin/sh
+#!/usr/bin/env bash
 # forum: https://1024.day
 
-if [[ $EUID -ne 0 ]]; then
+set -Eeuo pipefail
+IFS=$'\n\t'
+
+if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
     clear
     echo "Error: This script must be run as root!" 1>&2
     exit 1
 fi
 
-timedatectl set-timezone Asia/Shanghai
+# Optional timezone change: enable by exporting TZ_AUTO=1 (default off)
+if [[ "${TZ_AUTO:-0}" == "1" ]]; then
+    timedatectl set-timezone "${TZ_VALUE:-Asia/Shanghai}" || true
+fi
 v2path=$(cat /dev/urandom | head -1 | md5sum | head -c 6)
 v2uuid=$(cat /proc/sys/kernel/random/uuid)
 ssport=$(shuf -i 2000-65000 -n 1)
@@ -53,73 +59,87 @@ install_precheck(){
     fi
 }
 
-install_nginx(){
+install_nginx_80_only(){
     if [ -f "/usr/bin/apt-get" ];then
         apt-get install -y nginx cron socat
     else
         yum install -y nginx cronie socat
     fi
 
-cat >/etc/nginx/nginx.conf<<EOF
-pid /var/run/nginx.pid;
-worker_processes auto;
-worker_rlimit_nofile 51200;
-events {
-    worker_connections 1024;
-    multi_accept on;
-    use epoll;
-}
-http {
-    server_tokens off;
-    sendfile on;
-    tcp_nopush on;
-    tcp_nodelay on;
-    keepalive_timeout 120s;
-    keepalive_requests 10000;
-    types_hash_max_size 2048;
-    include /etc/nginx/mime.types;
-    access_log off;
-    error_log /dev/null;
+    mkdir -p /var/www/letsencrypt
 
-    server {
-        listen 80;
-        listen [::]:80;
-        server_name $domain;
-        location / {
-            return 301 https://\$server_name\$request_uri;
-        }
+cat >/etc/nginx/conf.d/v2ray_wss.conf<<EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name $domain;
+
+    # ACME http-01 challenge
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+        default_type text/plain;
     }
-    
-    server {
-        listen $getPort ssl http2;
-        listen [::]:$getPort ssl http2;
-        server_name $domain;
-        ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
-        ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
-        ssl_prefer_server_ciphers on;
-        ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;        
-        location / {
-            default_type text/plain;
-            return 200 "Hello World !";
-        }        
-        location /$v2path {
-            proxy_redirect off;
-            proxy_pass http://127.0.0.1:8080;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade \$http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header Host \$http_host;
-        }
+
+    location / {
+        return 301 https://\$host\$request_uri;
     }
 }
 EOF
+
+    systemctl enable nginx && systemctl restart nginx
+    open_firewall 80 tcp
 }
 
-acme_ssl(){    
-    curl https://get.acme.sh | sh -s email=my@example.com
+install_nginx_tls_site(){
+cat >/etc/nginx/conf.d/v2ray_wss_tls.conf<<EOF
+server {
+    listen $getPort ssl http2;
+    listen [::]:$getPort ssl http2;
+    server_name $domain;
+
+    # Modern TLS settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE';
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
+
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    location / {
+        default_type text/plain;
+        return 200 "Hello World !";
+    }
+
+    location /$v2path {
+        proxy_redirect off;
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$http_host;
+    }
+}
+EOF
+
+    nginx -t && systemctl reload nginx
+    open_firewall "$getPort" tcp
+}
+
+acme_ssl(){
+    local email
+    email="${ACME_EMAIL:-admin@example.com}"
+    curl https://get.acme.sh | sh -s email="${email}"
     mkdir -p /etc/letsencrypt/live/$domain
-    ~/.acme.sh/acme.sh --issue -d $domain --standalone --keylength ec-256 --pre-hook "systemctl stop nginx" --post-hook "~/.acme.sh/acme.sh --installcert -d $domain --ecc --fullchain-file /etc/letsencrypt/live/$domain/fullchain.pem --key-file /etc/letsencrypt/live/$domain/privkey.pem --reloadcmd \"systemctl start nginx\""
+    # Use webroot to avoid stopping nginx
+    ~/.acme.sh/acme.sh --issue -d "$domain" -w /var/www/letsencrypt --keylength ec-256
+    ~/.acme.sh/acme.sh --installcert -d "$domain" --ecc \
+        --fullchain-file "/etc/letsencrypt/live/$domain/fullchain.pem" \
+        --key-file "/etc/letsencrypt/live/$domain/privkey.pem" \
+        --reloadcmd "systemctl reload nginx"
 }
 
 install_v2ray(){    
@@ -156,20 +176,20 @@ cat >/usr/local/etc/v2ray/config.json<<EOF
 EOF
 
     systemctl enable v2ray.service && systemctl restart v2ray.service && systemctl restart nginx.service
-    rm -f tcp-wss.sh install-release.sh
 
+# Machine-readable client JSON
 cat >/usr/local/etc/v2ray/client.json<<EOF
 {
-===========配置参数=============
-协议：VMess
-地址：${domain}
-端口：${getPort}
-UUID：${v2uuid}
-加密方式：aes-128-gcm
-传输协议：ws
-路径：/${v2path}
-底层传输：tls
-注意：8080是免流端口不需要打开tls
+  "protocol": "vmess",
+  "address": "${domain}",
+  "port": ${getPort},
+  "uuid": "${v2uuid}",
+  "encryption": "none",
+  "network": "ws",
+  "path": "/${v2path}",
+  "tls": true,
+  "sni": "${domain}",
+  "host": "${domain}"
 }
 EOF
 
@@ -203,40 +223,58 @@ client_v2ray(){
     echo "地址：${domain}"
     echo "端口：${getPort}"
     echo "UUID：${v2uuid}"
-    echo "加密方式：aes-128-gcm"
+    echo "加密方式：none"
     echo "传输协议：ws"
     echo "路径：/${v2path}"
     echo "底层传输：tls"
     echo "注意：8080是免流端口不需要打开tls"
     echo "===================================="
     echo "vmess://${wslink}"
+    # Human-readable client info
+    cat >/usr/local/etc/v2ray/client.txt<<TXT
+===========配置参数=============
+协议：VMess
+地址：${domain}
+端口：${getPort}
+UUID：${v2uuid}
+加密方式：none
+传输协议：ws
+路径：/${v2path}
+底层传输：tls
+====================================
+vmess://${wslink}
+TXT
     echo
 }
 
 start_menu(){
     clear
-    echo " ================================================== "
-    echo " 论坛：https://1024.day                              "
-    echo " 介绍：一键安装SS-Rust，v2ray+wss，Reality或Hysteria2    "
-    echo " 系统：Ubuntu、Debian、CentOS                        "
-    echo " ================================================== "
+    local line="+----------------------------------------------------------+"
+    echo "$line"
+    printf "| %-56s |\n" "脚本菜单 / Script Menu"
+    echo "$line"
+    printf "| %-56s |\n" "论坛: https://1024.day"
+    printf "| %-56s |\n" "功能: 一键安装 SS-Rust / V2Ray+WSS / Reality / Hysteria2 / HTTPS"
+    printf "| %-56s |\n" "系统: Ubuntu / Debian / CentOS"
+    echo "$line"
+    printf "| %-56s |\n" " 1) 安装 Shadowsocks-rust (落地)"
+    printf "| %-56s |\n" " 2) 安装 V2Ray + WebSocket + TLS"
+    printf "| %-56s |\n" " 3) 安装 Reality (Xray)"
+    printf "| %-56s |\n" " 4) 安装 Hysteria2 (QUIC)"
+    printf "| %-56s |\n" " 5) 安装 HTTPS 正向代理 (Caddy)"
+    printf "| %-56s |\n" " 0) 退出"
+    echo "$line"
     echo
-    echo " 1. 安装 Shadowsocks-rust(用于落地)"
-    echo " 2. 安装 v2ray+ws+tls"
-    echo " 3. 安装 Reality"
-    echo " 4. 安装 Hysteria2"
-    echo " 5. 安装 Https正向代理"
-    echo " 0. 退出脚本"
-    echo
-    read -p "请输入数字:" num
+    read -p "请选择 [0-5]: " num
     case "$num" in
     1)
     install_ssrust
     ;;
     2)
     install_precheck
-    install_nginx
+    install_nginx_80_only
     acme_ssl
+    install_nginx_tls_site
     install_v2ray
     client_v2ray
     ;;
@@ -254,7 +292,7 @@ start_menu(){
     ;;
     *)
     clear
-    echo "请输入正确数字"
+    echo "请输入正确选项 [0-5]"
     sleep 2s
     start_menu
     ;;
@@ -262,3 +300,16 @@ start_menu(){
 }
 
 start_menu
+# Optional firewall opening when FIREWALL_AUTO=1
+open_firewall() {
+    local port="$1"; local proto="${2:-tcp}"
+    [[ "${FIREWALL_AUTO:-0}" != "1" ]] && return 0
+    if command -v ufw >/dev/null 2>&1; then
+        if ufw status | grep -qi "Status: active"; then
+            ufw allow "${port}/${proto}" || true
+        fi
+    elif command -v firewall-cmd >/dev/null 2>&1 && systemctl is-active --quiet firewalld; then
+        firewall-cmd --add-port="${port}/${proto}" --permanent || true
+        firewall-cmd --reload || true
+    fi
+}
