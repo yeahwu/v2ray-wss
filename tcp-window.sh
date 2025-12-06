@@ -10,7 +10,7 @@ fi
 
 echo "[*] Configuring limits (nofile, nproc)..."
 
-# 使用 limits.d 而不是覆盖 limits.conf
+# 增大句柄数
 cat >/etc/security/limits.d/99-nofile-nproc.conf <<EOF
 * soft     nproc    131072
 * hard     nproc    131072
@@ -23,7 +23,7 @@ root soft  nofile   262144
 root hard  nofile   262144
 EOF
 
-# 确保 pam_limits 启用，避免重复添加
+# 确保 pam_limits 启用
 if ! grep -q '^session\s\+required\s\+pam_limits.so' /etc/pam.d/common-session 2>/dev/null; then
     echo "session required pam_limits.so" >> /etc/pam.d/common-session
 fi
@@ -47,12 +47,12 @@ systemctl daemon-reexec
 
 echo "[*] Backing up and configuring sysctl..."
 
-# 备份 sysctl.conf（以防万一）
+# 备份 sysctl.conf
 if [ -f /etc/sysctl.conf ]; then
     cp /etc/sysctl.conf /etc/sysctl.conf.bak.$(date +%F-%T)
 fi
 
-# 使用 /etc/sysctl.d/ 而不是覆盖 /etc/sysctl.conf
+# 优化部分tcp参数
 cat >/etc/sysctl.d/99-tcp-tuning.conf <<EOF
 fs.file-max = 524288
 net.ipv4.tcp_congestion_control = bbr
@@ -61,8 +61,6 @@ net.ipv4.tcp_slow_start_after_idle = 0
 #net.ipv4.tcp_mtu_probing = 1
 net.ipv4.tcp_rmem = 8192 262144 536870912
 net.ipv4.tcp_wmem = 4096 16384 536870912
-#net.ipv4.udp_rmem_min = 8192
-#net.ipv4.udp_wmem_min = 8192
 net.ipv4.tcp_adv_win_scale = -2
 net.ipv4.tcp_notsent_lowat = 131072
 #net.ipv6.conf.all.disable_ipv6 = 1
@@ -71,7 +69,7 @@ net.ipv4.tcp_notsent_lowat = 131072
 #net.ipv4.ip_forward = 1
 EOF
 
-# 立即加载 sysctl
+# 加载 sysctl
 sysctl --system
 
 # 删除当前目录下的脚本文件 tcp-window.sh
@@ -80,7 +78,7 @@ rm -- tcp-window.sh
 echo
 echo "[*] Done."
 echo "    - limits.d 已配置 nofile/nproc"
-echo "    - pam_limits 已启用（如原来没有）"
+echo "    - pam_limits 已启用"
 echo "    - systemd 默认限制通过 /etc/systemd/system.conf.d/99-limits.conf 设置"
 echo "    - sysctl 参数写入 /etc/sysctl.d/99-tcp-tuning.conf 并已加载"
 echo
