@@ -223,7 +223,7 @@ start_menu(){
     echo
     echo " 1. 安装 Shadowsocks-rust(用于落地)"
     echo " 2. 安装 v2ray+ws+tls"
-    echo " 3. 安装 Reality"
+    echo " 3. 安装 Reality(xtls-rprx-vision)"
     echo " 4. 安装 Hysteria2"
     echo " 5. 安装 Https正向代理"
     echo " 0. 退出脚本"
