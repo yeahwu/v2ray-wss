@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# 该脚本使用 nftables 实现端口转发功能，支持 TCP 和 UDP 协议
+# Author: https://1024.day
 
 # 遇到错误立即退出，未定义变量报错
 set -euo pipefail
@@ -101,6 +103,9 @@ table ip ${TABLE_NAME} {
         # 将 TCP/UDP 流量 DNAT 到目标地址
         tcp dport ${FORWARD_PORT} dnat to ${TARGET_IP}:${TARGET_PORT}
         udp dport ${FORWARD_PORT} dnat to ${TARGET_IP}:${TARGET_PORT}
+        # 转发多台落地服务器，在下面直接复写添加就行
+        # tcp dport 3333 dnat to 7.7.7.7:7777
+        # udp dport 3333 dnat to 7.7.7.7:7777
     }
 
     chain postrouting {
